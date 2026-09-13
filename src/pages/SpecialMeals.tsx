@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import MenuItemCard from '../components/MenuItemCard'
 import CartBar from '../components/CartBar'
 import AlponaDivider from '../components/AlponaDivider'
-import { specialMeals } from '../data/menu'
+import { useSpecialMeals } from '../hooks/useSpecialMeals'
 
 export default function SpecialMeals() {
+  const { specialMeals, loading } = useSpecialMeals()
   return (
     <div className="max-w-3xl mx-auto px-4 pt-8 pb-32">
       <Link to="/" className="text-clay-dark text-sm font-semibold hover:text-terracotta">
@@ -22,7 +23,9 @@ export default function SpecialMeals() {
         <AlponaDivider />
       </motion.div>
 
-      {specialMeals.length === 0 ? (
+      {loading ? (
+        <p className="text-center text-clay-dark mt-12">Loading specials…</p>
+      ) : specialMeals.length === 0 ? (
         <p className="text-center text-clay-dark mt-12">No specials posted right now — check back soon!</p>
       ) : (
         <div className="mt-6 grid gap-5">

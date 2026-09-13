@@ -1,0 +1,21 @@
+rules_version = '2';
+
+// Anyone can READ the menu (customers browsing the site) but only a signed-in
+// owner account can WRITE to it (via the /admin page). Paste this into
+// Firebase Console -> Firestore Database -> Rules, then Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /weeklyPlan/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /weeklyPlanItems/{itemId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /specialMeals/{itemId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

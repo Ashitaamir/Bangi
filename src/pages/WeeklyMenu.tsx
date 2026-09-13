@@ -4,11 +4,12 @@ import { Link } from 'react-router-dom'
 import PlanItemRow from '../components/PlanItemRow'
 import CartBar from '../components/CartBar'
 import AlponaDivider from '../components/AlponaDivider'
-import { weeklyMenu } from '../data/menu'
+import { useWeeklyMenu } from '../hooks/useWeeklyMenu'
 import { useCart, type ChosenSub, type ExtraLine } from '../context/CartContext'
 
 export default function WeeklyMenu() {
   const { addItem } = useCart()
+  const { weeklyMenu, loading } = useWeeklyMenu()
 
   // selections[itemId][groupId] = optionId
   const [selections, setSelections] = useState<Record<string, Record<string, string>>>({})
@@ -86,6 +87,13 @@ export default function WeeklyMenu() {
         <AlponaDivider />
       </motion.div>
 
+      {loading ? (
+        <p className="text-center text-clay-dark mt-12">Loading this week's menu…</p>
+      ) : weeklyMenu.items.length === 0 ? (
+        <p className="text-center text-clay-dark mt-12">
+          The menu hasn't been posted yet — check back soon!
+        </p>
+      ) : (
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -145,6 +153,7 @@ export default function WeeklyMenu() {
           </motion.button>
         </div>
       </motion.div>
+      )}
 
       <CartBar />
     </div>

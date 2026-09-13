@@ -5,6 +5,7 @@ import WeeklyMenu from './pages/WeeklyMenu'
 import SpecialMeals from './pages/SpecialMeals'
 import Checkout from './pages/Checkout'
 import Confirmation from './pages/Confirmation'
+import Admin from './pages/Admin'
 
 export default function App() {
   const location = useLocation()
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/special" element={<SpecialMeals />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/confirmation" element={<Confirmation />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>
     </div>
