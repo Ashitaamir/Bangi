@@ -2,11 +2,17 @@ import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { saveLastOrder, generateOrderId, type Fulfillment } from '../data/orders'
+import {
+  saveLastOrder,
+  generateOrderId,
+  DELIVERY_FEES,
+  type Fulfillment,
+  type DeliveryZone,
+} from '../data/orders'
 import AlponaDivider from '../components/AlponaDivider'
 
 const INTERAC_EMAIL = 'orders@bangikitchen.ca'
-const PICKUP_ADDRESS = '42 Danforth Ave, Toronto — 5:00pm to 7:00pm'
+const PICKUP_ADDRESS = '5000 Boulevard De Maisonneuve O, Montreal — 5:00pm to 7:00pm'
 
 export default function Checkout() {
   const { items, subtotal, itemTotal, removeItem, clearCart } = useCart()
@@ -17,12 +23,16 @@ export default function Checkout() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [fulfillment, setFulfillment] = useState<Fulfillment>('delivery')
+  const [deliveryZone, setDeliveryZone] = useState<DeliveryZone>('downtown')
   const [address, setAddress] = useState('')
   const [notes, setNotes] = useState('')
   const [screenshot, setScreenshot] = useState<string | undefined>()
   const [screenshotName, setScreenshotName] = useState<string>('')
   const [copied, setCopied] = useState<'email' | 'memo' | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  const deliveryFee = fulfillment === 'delivery' ? DELIVERY_FEES[deliveryZone] : 0
+  const total = subtotal + deliveryFee
 
   const canSubmit =
     items.length > 0 &&
@@ -56,10 +66,13 @@ export default function Checkout() {
       createdAt: new Date().toISOString(),
       customer: { name, email, phone },
       fulfillment,
+      deliveryZone: fulfillment === 'delivery' ? deliveryZone : undefined,
+      deliveryFee,
       address: fulfillment === 'delivery' ? address : PICKUP_ADDRESS,
       notes,
       items,
       subtotal,
+      total,
       screenshotDataUrl: screenshot,
     })
     clearCart()
@@ -107,7 +120,22 @@ export default function Checkout() {
                   </p>
                   {item.chosenSubs.length > 0 && (
                     <p className="text-clay-dark text-xs">
-                      {item.chosenSubs.map((s) => `${s.groupLabel}: ${s.optionLabel}`).join(' · ')}
+                      {item.chosenSubs
+                        .map(
+                          (s) =>
+                            `${s.itemName} — ${s.groupLabel}: ${s.optionLabel}${
+                              s.priceDelta ? ` (${s.priceDelta > 0 ? '+' : ''}$${s.priceDelta.toFixed(2)})` : ''
+                            }`,
+                        )
+                        .join(' · ')}
+                    </p>
+                  )}
+                  {item.extras && item.extras.length > 0 && (
+                    <p className="text-clay-dark text-xs mt-0.5">
+                      Extra:{' '}
+                      {item.extras
+                        .map((e) => `${e.qty}× ${e.itemName} (+$${(e.qty * e.unitPrice).toFixed(2)})`)
+                        .join(' · ')}
                     </p>
                   )}
                 </div>
@@ -125,9 +153,15 @@ export default function Checkout() {
             </div>
           ))}
         </div>
+        {deliveryFee > 0 && (
+          <div className="flex justify-between text-sm text-clay-dark mt-3 pt-3 border-t border-dashed border-bark/20">
+            <span>Delivery fee ({deliveryZone === 'downtown' ? 'Downtown Montreal' : 'Outside Downtown'})</span>
+            <span>${deliveryFee.toFixed(2)}</span>
+          </div>
+        )}
         <div className="border-t border-dashed border-bark/20 mt-4 pt-3 flex justify-between font-bold text-bark">
           <span>Total</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>${total.toFixed(2)}</span>
         </div>
       </section>
 
@@ -178,13 +212,31 @@ export default function Checkout() {
         </div>
 
         {fulfillment === 'delivery' ? (
-          <textarea
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Delivery address"
-            rows={2}
-            className="mt-3 w-full rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
-          />
+          <>
+            <div className="mt-3 flex gap-2">
+              {(['downtown', 'outside'] as DeliveryZone[]).map((zone) => (
+                <button
+                  key={zone}
+                  type="button"
+                  onClick={() => setDeliveryZone(zone)}
+                  className={`flex-1 text-sm font-semibold py-2 rounded-full border-2 transition-colors ${
+                    deliveryZone === zone
+                      ? 'bg-clay-dark text-cream border-clay-dark'
+                      : 'bg-cream text-bark border-bark/20 hover:border-clay-dark'
+                  }`}
+                >
+                  {zone === 'downtown' ? `Downtown Montreal +$${DELIVERY_FEES.downtown}` : `Outside Downtown +$${DELIVERY_FEES.outside}`}
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Delivery address"
+              rows={2}
+              className="mt-3 w-full rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </>
         ) : (
           <p className="mt-3 text-sm text-clay-dark bg-cream rounded-lg px-4 py-2.5 border border-bark/10">
             📍 Pickup at: <strong>{PICKUP_ADDRESS}</strong>
@@ -230,7 +282,7 @@ export default function Checkout() {
           </div>
           <div className="flex items-center justify-between bg-cream/10 rounded-lg px-3 py-2">
             <span>Amount</span>
-            <strong className="text-gold text-base">${subtotal.toFixed(2)}</strong>
+            <strong className="text-gold text-base">${total.toFixed(2)}</strong>
           </div>
         </div>
         <p className="text-xs text-cream/70 mt-3">
@@ -266,7 +318,7 @@ export default function Checkout() {
         onClick={handleSubmit}
         className="mt-8 w-full bg-terracotta disabled:bg-clay-light disabled:cursor-not-allowed hover:bg-alpona text-cream font-bold text-lg py-3.5 rounded-full shadow-lg transition-colors"
       >
-        {submitting ? 'Placing your order…' : `Confirm Order · $${subtotal.toFixed(2)}`}
+        {submitting ? 'Placing your order…' : `Confirm Order · $${total.toFixed(2)}`}
       </motion.button>
       {!canSubmit && (
         <p className="text-xs text-center text-clay-dark mt-2">

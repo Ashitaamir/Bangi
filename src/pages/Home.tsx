@@ -21,7 +21,7 @@ export default function Home() {
           transition={{ delay: 0.35, duration: 0.6 }}
           className="text-clay-dark font-medium mt-4 max-w-sm"
         >
-          Home-style Bengali meals, cooked weekly &amp; shared with love — order online, pay by Interac.
+          Home cooked meals with love.
         </motion.p>
 
         <motion.button

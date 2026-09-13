@@ -68,10 +68,16 @@ export default function Confirmation() {
               </span>
             </div>
           ))}
+          {order.deliveryFee > 0 && (
+            <div className="flex justify-between text-clay-dark">
+              <span>Delivery fee</span>
+              <span>${order.deliveryFee.toFixed(2)}</span>
+            </div>
+          )}
         </div>
         <div className="border-t border-dashed border-bark/20 mt-3 pt-3 flex justify-between font-bold text-bark">
           <span>Total Paid</span>
-          <span>${order.subtotal.toFixed(2)}</span>
+          <span>${order.total.toFixed(2)}</span>
         </div>
         <p className="text-xs text-clay-dark mt-3">
           {order.fulfillment === 'delivery' ? `🛵 Delivery to: ${order.address}` : `🚶 ${order.address}`}

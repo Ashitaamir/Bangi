@@ -26,10 +26,10 @@ export default function PinboardSelect({ group, selectedOptionId, onChange }: Pr
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 bg-gradient-to-b from-clay-light to-clay-dark text-cream text-xs sm:text-sm font-semibold px-3 py-2 rounded-md shadow-md hover:brightness-110 transition"
+        className="flex items-center gap-2 text-cream text-xs sm:text-sm font-semibold px-3 py-2 rounded-md shadow-md hover:brightness-110 transition"
         style={{
           backgroundImage:
-            'repeating-linear-gradient(90deg, rgba(0,0,0,0.06) 0px, rgba(0,0,0,0.06) 2px, transparent 2px, transparent 10px)',
+            'repeating-linear-gradient(90deg, rgba(0,0,0,0.06) 0px, rgba(0,0,0,0.06) 2px, transparent 2px, transparent 10px), linear-gradient(to bottom, #B97A4E, #6B4226)',
         }}
       >
         <span aria-hidden>📌</span>

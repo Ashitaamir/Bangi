@@ -1,6 +1,12 @@
 import type { CartItem } from '../context/CartContext'
 
 export type Fulfillment = 'delivery' | 'pickup'
+export type DeliveryZone = 'downtown' | 'outside'
+
+export const DELIVERY_FEES: Record<DeliveryZone, number> = {
+  downtown: 3,
+  outside: 8,
+}
 
 export interface Order {
   id: string
@@ -11,10 +17,13 @@ export interface Order {
     phone: string
   }
   fulfillment: Fulfillment
+  deliveryZone?: DeliveryZone
+  deliveryFee: number
   address?: string
   notes?: string
   items: CartItem[]
   subtotal: number
+  total: number
   screenshotDataUrl?: string
 }
 

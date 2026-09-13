@@ -3,11 +3,11 @@ import { motion } from 'framer-motion'
 import PinboardSelect from './PinboardSelect'
 import SpiceLevel from './SpiceLevel'
 import { useCart, type ChosenSub } from '../context/CartContext'
-import type { MenuItem, SubstitutionGroup } from '../data/types'
+import type { SpecialMeal } from '../data/types'
 
 interface Props {
-  item: MenuItem & { substitutions?: SubstitutionGroup[] }
-  sourceType: 'weekly' | 'special'
+  item: SpecialMeal
+  sourceType: 'special'
   badge?: string
 }
 
@@ -24,6 +24,8 @@ export default function MenuItemCard({ item, sourceType, badge }: Props) {
   const chosenSubs: ChosenSub[] = (item.substitutions ?? []).map((g) => {
     const opt = g.options.find((o) => o.id === selections[g.id]) ?? g.options[0]
     return {
+      itemId: item.id,
+      itemName: item.name,
       groupId: g.id,
       groupLabel: g.label,
       optionId: opt.id,

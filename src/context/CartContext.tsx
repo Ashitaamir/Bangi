@@ -1,11 +1,21 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
 export interface ChosenSub {
+  itemId: string
+  itemName: string
   groupId: string
   groupLabel: string
   optionId: string
   optionLabel: string
   priceDelta: number
+}
+
+export interface ExtraLine {
+  itemId: string
+  itemName: string
+  emoji: string
+  qty: number
+  unitPrice: number
 }
 
 export interface CartItem {
@@ -18,6 +28,7 @@ export interface CartItem {
   basePrice: number
   qty: number
   chosenSubs: ChosenSub[]
+  extras?: ExtraLine[]
 }
 
 interface CartContextValue {
@@ -73,11 +84,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   function itemTotal(item: CartItem) {
     const subDelta = item.chosenSubs.reduce((sum, s) => sum + s.priceDelta, 0)
-    return (item.basePrice + subDelta) * item.qty
+    const extrasTotal = (item.extras ?? []).reduce((sum, e) => sum + e.qty * e.unitPrice, 0)
+    return (item.basePrice + subDelta) * item.qty + extrasTotal
   }
 
   const subtotal = items.reduce((sum, i) => sum + itemTotal(i), 0)
-  const count = items.reduce((sum, i) => sum + i.qty, 0)
+  const count = items.reduce(
+    (sum, i) => sum + i.qty + (i.extras ?? []).reduce((s, e) => s + e.qty, 0),
+    0,
+  )
 
   return (
     <CartContext.Provider
