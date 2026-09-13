@@ -13,20 +13,13 @@ export default function Home() {
       <section className="min-h-screen flex flex-col items-center justify-center px-4 text-center relative overflow-hidden">
         <FloatingSpices />
 
-        <Logo size={110} />
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="font-display text-5xl sm:text-6xl font-extrabold text-bark mt-4 tracking-tight"
-        >
-          Bangi
-        </motion.h1>
+        <h1 className="sr-only">Bangi — Flavors of Bengal, Savored with Love!</h1>
+        <Logo className="h-32 sm:h-40" />
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.6 }}
-          className="text-clay-dark font-medium mt-2 max-w-sm"
+          className="text-clay-dark font-medium mt-4 max-w-sm"
         >
           Home-style Bengali meals, cooked weekly &amp; shared with love — order online, pay by Interac.
         </motion.p>

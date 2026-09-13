@@ -7,9 +7,8 @@ export default function NavBar() {
   return (
     <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur border-b border-bark/10">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-2">
-        <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <Logo size={36} />
-          <span className="font-display text-lg sm:text-xl font-bold text-bark tracking-wide">Bangi</span>
+        <Link to="/" className="flex items-center shrink-0">
+          <Logo className="h-9" />
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm font-semibold text-clay-dark">
           <Link to="/menu" className="whitespace-nowrap hover:text-terracotta transition-colors">
