@@ -58,7 +58,7 @@ This connects the site to a free Firebase project so the `/admin` page works and
 2. Open `.env.local` and fill in each value from the `firebaseConfig` object you just saw (matching names, e.g. `apiKey` → `VITE_FIREBASE_API_KEY`).
 3. Restart `npm run dev` if it was already running.
 
-`.env.local` is git-ignored — it never gets committed or pushed, so these keys stay private to whoever runs the project locally. If the site gets deployed to a host like Vercel or Netlify later, the same variables get added there under the host's "Environment Variables" settings instead.
+`.env.local` is git-ignored — it never gets committed or pushed, so these keys stay private to whoever runs the project locally.
 
 ### 6. Log in and load the starter menu
 1. Visit `/admin` on the site and sign in with the email/password you created in step 3.
@@ -89,3 +89,29 @@ Skip this and everything above still works fine — orders still save and show u
    VITE_EMAILJS_PUBLIC_KEY=...
    ```
 6. Restart `npm run dev`. Place a real test order to confirm the email arrives.
+
+## Deploying (going live)
+
+The site deploys to **Firebase Hosting** — the same Firebase project already used for the database and login, so there's no new account to create. This repo already includes `firebase.json` and `.firebaserc` pointing at the project, so it's just a few commands.
+
+### One-time setup
+1. Install the Firebase CLI (needs Node, which is already installed):
+   ```bash
+   npm install -g firebase-tools
+   ```
+2. Log in (opens a browser — sign in with the same Google account used for the Firebase project):
+   ```bash
+   firebase login
+   ```
+
+### Every time you want to publish changes
+```bash
+npm run deploy
+```
+This builds the site (`npm run build`, using whatever is in your local `.env.local`) and uploads it to Firebase Hosting. It prints a **Hosting URL** when done — something like `https://bangi2026.web.app` — that's the live, public link. Share that link with real customers.
+
+A few things worth knowing:
+- The live site bakes in whatever is in `.env.local` **on the machine that runs `npm run deploy`** at build time — so deploy from the same machine that's had the setup above done on it.
+- Deploying does **not** touch the menu, orders, or admin login — those all live in Firestore/Auth, completely separate from the website files. Redeploying only updates the code (pages, styling, features).
+- To publish a change, the same two steps always apply: `git pull` the latest code, then `npm run deploy`.
+- The link stays the same forever once you've deployed once — no need to reshare it after future deploys.
