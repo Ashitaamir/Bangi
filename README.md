@@ -7,15 +7,15 @@ A website for ordering weekly and special Bengali home-cooked meals, paid via In
 1. **Home** — logo and an animated weekly-menu button.
 2. **Weekly Menu** (`/menu`) — one flat-rate plan (price set by the owner) listing this week's dishes. Some dishes offer substitutions (e.g. beef/mutton) via pinboard-style dropdowns; any dish can also offer an "extra portion" add-on at its own price.
 3. **Specials** (`/special`) — today/tomorrow one-off meals, priced individually.
-4. **Checkout** (`/checkout`) — order summary, customer details, delivery (with a Downtown Montreal / Outside Downtown fee) or pickup, Interac payment instructions, and a payment screenshot upload.
+4. **Checkout** (`/checkout`) — order summary, customer details, delivery (with a Downtown Montreal / Outside Downtown fee) or pickup, Interac payment instructions, and a payment screenshot upload. On confirm, the order is saved to Firestore (so the owner receives it) and a confirmation email is sent to the customer.
 5. **Confirmation** (`/confirmation`) — order confirmed with an animated alpona bloom.
-6. **Admin** (`/admin`) — password-protected page where the owner edits the weekly plan, dishes, substitutions, extra-portion prices, and specials. Changes go live for customers immediately.
+6. **Admin** (`/admin`) — password-protected page where the owner sees incoming orders (customer info, what they ordered, payment screenshot, a way to mark each as confirmed) and edits the weekly plan, dishes, substitutions, extra-portion prices, and specials. Changes go live for customers immediately.
 
 ## Stack
 
-React + TypeScript + Vite, Tailwind CSS, Framer Motion, React Router, Firebase (Firestore + Auth) for the live menu and admin login.
+React + TypeScript + Vite, Tailwind CSS, Framer Motion, React Router, Firebase (Firestore + Auth) for the live menu, orders, and admin login, EmailJS for the customer confirmation email.
 
-Cart and order state are still kept in `localStorage` for now (no order backend yet) — the payment screenshot is stored as a data URL for the owner's reference on the confirmation page. A future iteration would send orders to Firestore too, so the owner actually receives them instead of them only living in the customer's browser.
+Orders are saved to Firestore's `orders` collection: a customer can create their own order but can never read anyone else's (name, phone, address, order history) — only the signed-in owner account can see the order list, via `/admin`. The payment screenshot is compressed client-side before saving so it fits comfortably inside Firestore's per-document size limit.
 
 ## Develop
 
@@ -38,6 +38,8 @@ This connects the site to a free Firebase project so the `/admin` page works and
 1. In the left sidebar, click **Build → Firestore Database**.
 2. Click **Create database**, choose a location close to Montreal (e.g. `us-east4` or `northamerica-northeast1`), and start in **production mode**.
 3. Once created, go to the **Rules** tab, delete what's there, and paste in the contents of `firestore.rules` from this repo. Click **Publish**.
+
+   **Already did this before and just pulled new code?** The rules file gained an `orders` section since — go back to the Rules tab, replace the whole thing with the current contents of `firestore.rules`, and Publish again. Takes a minute and is safe to redo any time the file changes.
 
 ### 3. Turn on Email/Password sign-in (the owner's login)
 1. In the sidebar, click **Build → Authentication**, click **Get started**.
@@ -62,4 +64,28 @@ This connects the site to a free Firebase project so the `/admin` page works and
 1. Visit `/admin` on the site and sign in with the email/password you created in step 3.
 2. The first time, click **Load Sample Menu** to pre-fill Firestore with the example dishes — then edit or delete anything from there. Add dishes, set the plan price, add substitutions, add specials, all from that page.
 
-That's it — from here on, the owner only ever needs `/admin`, no code or redeploys required to change what customers see.
+That's it for the menu and admin login — from here on, the owner only ever needs `/admin`, no code or redeploys required to change what customers see.
+
+### 7. (Optional) Set up the confirmation email
+
+Skip this and everything above still works fine — orders still save and show up in `/admin`, customers just won't get an automatic email. This step adds that email, using [EmailJS](https://www.emailjs.com) (free for up to 200 emails/month, no card required).
+
+1. Go to [emailjs.com](https://www.emailjs.com) and sign up.
+2. **Email Services** (left sidebar) → **Add New Service** → pick **Gmail** (simplest) → connect the Google account you want the emails to send *from* (can be a personal Gmail, or a dedicated one for the business).
+3. **Email Templates** → **Create New Template**. This is the email itself:
+   - Find the **"To email"** field in the template's settings (not the body) and set it to `{{to_email}}` — this is what actually routes the email to the customer, easy to miss.
+   - Subject, e.g.: `Your Bangi order is confirmed!`
+   - Body — write it however you like, using these placeholders anywhere in the text:
+     `{{to_name}}`, `{{order_id}}`, `{{order_summary}}`, `{{total}}`, `{{fulfillment_summary}}`
+   - Save the template.
+4. Collect three values:
+   - **Service ID** — shown next to the Gmail service you created (Email Services tab)
+   - **Template ID** — shown next to the template you just made (Email Templates tab)
+   - **Public Key** — **Account** (top right) → **General** tab
+5. Add all three to `.env.local`:
+   ```
+   VITE_EMAILJS_SERVICE_ID=...
+   VITE_EMAILJS_TEMPLATE_ID=...
+   VITE_EMAILJS_PUBLIC_KEY=...
+   ```
+6. Restart `npm run dev`. Place a real test order to confirm the email arrives.

@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useWeeklyMenu } from '../hooks/useWeeklyMenu'
 import { useSpecialMeals } from '../hooks/useSpecialMeals'
+import { useOrders } from '../hooks/useOrders'
 import { isFirebaseConfigured } from '../lib/firebase'
+import OrderCard from '../components/admin/OrderCard'
 import {
   addPlanItem,
   addSpecialMeal,
@@ -124,11 +126,15 @@ function AdminLogin({ onSignIn }: { onSignIn: (email: string, password: string) 
 function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
   const { weeklyMenu, loading: menuLoading } = useWeeklyMenu()
   const { specialMeals, loading: specialsLoading } = useSpecialMeals()
+  const { orders, loading: ordersLoading } = useOrders()
+  const pendingCount = orders.filter((o) => o.status !== 'confirmed').length
 
   const [weekLabel, setWeekLabel] = useState('')
   const [orderWindow, setOrderWindow] = useState('')
   const [planPrice, setPlanPrice] = useState('')
   const [settingsSaved, setSettingsSaved] = useState(false)
+  const [savingSettings, setSavingSettings] = useState(false)
+  const [settingsError, setSettingsError] = useState('')
 
   const [addingPlanItem, setAddingPlanItem] = useState(false)
   const [editingPlanItemId, setEditingPlanItemId] = useState<string | null>(null)
@@ -137,6 +143,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
 
   const [showSeed, setShowSeed] = useState(false)
   const [seeding, setSeeding] = useState(false)
+  const [seedError, setSeedError] = useState('')
 
   useEffect(() => {
     if (!menuLoading) {
@@ -153,20 +160,32 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
 
   async function handleSaveSettings(e: React.FormEvent) {
     e.preventDefault()
-    await savePlanSettings({
-      weekLabel,
-      orderWindow,
-      planPrice: Number(planPrice) || 0,
-    })
-    setSettingsSaved(true)
-    setTimeout(() => setSettingsSaved(false), 1800)
+    setSavingSettings(true)
+    setSettingsError('')
+    try {
+      await savePlanSettings({
+        weekLabel,
+        orderWindow,
+        planPrice: Number(planPrice) || 0,
+      })
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 1800)
+    } catch (err) {
+      setSettingsError(err instanceof Error ? err.message : 'Failed to save. Try again.')
+    }
+    setSavingSettings(false)
   }
 
   async function handleSeed() {
     setSeeding(true)
-    await seedDefaultMenu()
+    setSeedError('')
+    try {
+      await seedDefaultMenu()
+      setShowSeed(false)
+    } catch (err) {
+      setSeedError(err instanceof Error ? err.message : 'Failed to load sample menu. Try again.')
+    }
     setSeeding(false)
-    setShowSeed(false)
   }
 
   return (
@@ -184,6 +203,24 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
         Bangi Admin
       </h1>
 
+      {/* Orders */}
+      <section className="mt-8">
+        <h2 className="font-display text-xl font-bold text-bark mb-3">
+          Orders {!ordersLoading && `(${pendingCount} awaiting confirmation)`}
+        </h2>
+        {ordersLoading ? (
+          <p className="text-sm text-bark/50">Loading orders…</p>
+        ) : orders.length === 0 ? (
+          <p className="text-sm text-bark/50">No orders yet — they'll show up here as customers check out.</p>
+        ) : (
+          <div className="grid gap-3">
+            {orders.map((order) => (
+              <OrderCard key={order.firestoreId} order={order} />
+            ))}
+          </div>
+        )}
+      </section>
+
       {showSeed && (
         <div className="mt-6 bg-gold/20 border border-gold rounded-xl p-4 text-center">
           <p className="text-sm text-bark">
@@ -197,6 +234,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
           >
             {seeding ? 'Loading…' : 'Load Sample Menu'}
           </button>
+          {seedError && <p className="text-terracotta text-sm font-semibold mt-2">{seedError}</p>}
         </div>
       )}
 
@@ -238,10 +276,12 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
           <div>
             <button
               type="submit"
-              className="bg-terracotta hover:bg-alpona text-cream font-bold px-5 py-2 rounded-full text-sm"
+              disabled={savingSettings}
+              className="bg-terracotta hover:bg-alpona text-cream font-bold px-5 py-2 rounded-full text-sm disabled:opacity-60"
             >
-              {settingsSaved ? 'Saved ✓' : 'Save Settings'}
+              {savingSettings ? 'Saving…' : settingsSaved ? 'Saved ✓' : 'Save Settings'}
             </button>
+            {settingsError && <p className="text-terracotta text-sm font-semibold mt-2">{settingsError}</p>}
           </div>
         </form>
       </section>
