@@ -61,9 +61,14 @@ function AdminLogin({ onSignIn }: { onSignIn: (email: string, password: string) 
     setError('')
     setSubmitting(true)
     try {
-      await onSignIn(email, password)
-    } catch {
-      setError('Wrong email or password.')
+      await onSignIn(email.trim(), password)
+    } catch (err) {
+      const code = (err as { code?: string })?.code
+      if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+        setError('Wrong email or password.')
+      } else {
+        setError(`Login failed (${code ?? 'unknown error'}). Screenshot this and send it over.`)
+      }
     }
     setSubmitting(false)
   }
