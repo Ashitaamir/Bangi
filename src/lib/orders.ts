@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db, isFirebaseConfigured } from './firebase'
 import { withTimeout } from './withTimeout'
 import { stripUndefinedDeep } from './stripUndefined'
@@ -22,4 +22,8 @@ export async function submitOrderToFirestore(order: Order): Promise<void> {
 
 export async function setOrderStatus(firestoreId: string, status: Order['status']) {
   await withTimeout(updateDoc(doc(db, 'orders', firestoreId), { status }))
+}
+
+export async function deleteOrder(firestoreId: string) {
+  await withTimeout(deleteDoc(doc(db, 'orders', firestoreId)))
 }
