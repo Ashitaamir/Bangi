@@ -52,6 +52,7 @@ export default function Admin() {
 function AdminLogin({ onSignIn }: { onSignIn: (email: string, password: string) => Promise<void> }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -82,14 +83,23 @@ function AdminLogin({ onSignIn }: { onSignIn: (email: string, password: string) 
           required
           className="rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
         />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-          className="rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
-        />
+        <div className="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+            className="w-full rounded-lg border border-bark/20 pl-4 pr-16 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((s) => !s)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-clay-dark hover:text-terracotta"
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
         {error && <p className="text-terracotta text-sm font-semibold">{error}</p>}
         <button
           type="submit"
