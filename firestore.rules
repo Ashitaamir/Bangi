@@ -1,8 +1,18 @@
 rules_version = '2';
 
-// Anyone can READ the menu (customers browsing the site) but only a signed-in
-// owner account can WRITE to it (via the /admin page). Paste this into
-// Firebase Console -> Firestore Database -> Rules, then Publish.
+// Menu: anyone can READ (customers browsing the site) but only a signed-in
+// owner account can WRITE (via the /admin page).
+//
+// Orders: anyone can CREATE an order (a customer checking out isn't signed
+// in), but only a signed-in owner account can READ, UPDATE, or DELETE orders
+// -- so a customer can submit their own order but can never see anyone
+// else's name, phone, address, or order history. A create is only accepted
+// if it looks like a real, complete order (basic shape/size validation
+// below) -- this is not a substitute for a backend, just a guard against
+// obviously malformed or oversized junk writes.
+//
+// Paste this into Firebase Console -> Firestore Database -> Rules, then
+// Publish.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /weeklyPlan/{docId} {
@@ -17,5 +27,25 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null;
     }
+
+    match /orders/{orderId} {
+      allow create: if isValidOrder(request.resource.data);
+      allow read, update, delete: if request.auth != null;
+    }
   }
+}
+
+function isValidOrder(data) {
+  return data.keys().hasAll(
+      ['customer', 'items', 'subtotal', 'total', 'fulfillment', 'deliveryFee', 'status'])
+    && data.customer.name is string && data.customer.name.size() > 0 && data.customer.name.size() < 200
+    && data.customer.email is string && data.customer.email.size() > 0 && data.customer.email.size() < 200
+    && data.customer.phone is string && data.customer.phone.size() > 0 && data.customer.phone.size() < 50
+    && data.items is list && data.items.size() > 0 && data.items.size() < 50
+    && data.subtotal is number
+    && data.total is number
+    && data.deliveryFee is number
+    && data.fulfillment in ['delivery', 'pickup']
+    && data.status is string
+    && (!('screenshotDataUrl' in data) || (data.screenshotDataUrl is string && data.screenshotDataUrl.size() < 900000));
 }

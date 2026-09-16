@@ -8,7 +8,11 @@ import {
   DELIVERY_FEES,
   type Fulfillment,
   type DeliveryZone,
+  type Order,
 } from '../data/orders'
+import { submitOrderToFirestore } from '../lib/orders'
+import { sendOrderConfirmationEmail } from '../lib/email'
+import { compressImage } from '../lib/image'
 import AlponaDivider from '../components/AlponaDivider'
 
 const INTERAC_EMAIL = 'orders@bangikitchen.ca'
@@ -28,8 +32,10 @@ export default function Checkout() {
   const [notes, setNotes] = useState('')
   const [screenshot, setScreenshot] = useState<string | undefined>()
   const [screenshotName, setScreenshotName] = useState<string>('')
+  const [compressing, setCompressing] = useState(false)
   const [copied, setCopied] = useState<'email' | 'memo' | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   const deliveryFee = fulfillment === 'delivery' ? DELIVERY_FEES[deliveryZone] : 0
   const total = subtotal + deliveryFee
@@ -40,15 +46,21 @@ export default function Checkout() {
     email.trim() &&
     phone.trim() &&
     (fulfillment === 'pickup' || address.trim()) &&
-    screenshot
+    screenshot &&
+    !compressing
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setScreenshotName(file.name)
-    const reader = new FileReader()
-    reader.onload = () => setScreenshot(reader.result as string)
-    reader.readAsDataURL(file)
+    setCompressing(true)
+    try {
+      setScreenshot(await compressImage(file))
+    } catch {
+      setScreenshot(undefined)
+      setScreenshotName('')
+    }
+    setCompressing(false)
   }
 
   function copy(text: string, which: 'email' | 'memo') {
@@ -58,10 +70,12 @@ export default function Checkout() {
     })
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!canSubmit) return
     setSubmitting(true)
-    saveLastOrder({
+    setSubmitError('')
+
+    const order: Order = {
       id: orderId,
       createdAt: new Date().toISOString(),
       customer: { name, email, phone },
@@ -74,8 +88,30 @@ export default function Checkout() {
       subtotal,
       total,
       screenshotDataUrl: screenshot,
-    })
+      status: 'awaiting_confirmation',
+    }
+
+    try {
+      await submitOrderToFirestore(order)
+    } catch {
+      setSubmitError("Couldn't send your order — check your connection and try again.")
+      setSubmitting(false)
+      return
+    }
+
+    saveLastOrder(order)
     clearCart()
+
+    sendOrderConfirmationEmail({
+      to_email: email,
+      to_name: name,
+      order_id: orderId,
+      order_summary: items.map((i) => `${i.qty}x ${i.name}`).join(', '),
+      total: `$${total.toFixed(2)}`,
+      fulfillment_summary:
+        fulfillment === 'delivery' ? `Delivery to: ${address}` : `Pickup at: ${PICKUP_ADDRESS}`,
+    })
+
     setTimeout(() => navigate('/confirmation'), 400)
   }
 
@@ -297,7 +333,9 @@ export default function Checkout() {
           Upload Payment Screenshot
         </h2>
         <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-clay-dark/40 rounded-2xl py-8 cursor-pointer hover:border-terracotta transition-colors bg-parchment/50">
-          {screenshot ? (
+          {compressing ? (
+            <span className="text-sm text-clay-dark font-semibold">Processing image…</span>
+          ) : screenshot ? (
             <img src={screenshot} alt="Payment screenshot preview" className="max-h-48 rounded-lg shadow" />
           ) : (
             <>
@@ -307,7 +345,7 @@ export default function Checkout() {
               </span>
             </>
           )}
-          <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
+          <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={compressing} />
         </label>
         {screenshotName && <p className="text-xs text-clay-dark mt-1 text-center">{screenshotName}</p>}
       </section>
@@ -320,7 +358,10 @@ export default function Checkout() {
       >
         {submitting ? 'Placing your order…' : `Confirm Order · $${total.toFixed(2)}`}
       </motion.button>
-      {!canSubmit && (
+      {submitError && (
+        <p className="text-xs text-center text-terracotta font-semibold mt-2">{submitError}</p>
+      )}
+      {!canSubmit && !submitError && (
         <p className="text-xs text-center text-clay-dark mt-2">
           Fill in your details and upload a payment screenshot to confirm.
         </p>

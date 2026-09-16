@@ -20,24 +20,30 @@ export default function SpecialMealForm({ initial, onSave, onCancel }: Props) {
     initial?.substitutions ?? [],
   )
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim() || !description.trim() || price === '') return
     setSaving(true)
+    setError('')
     const cleanedSubs = substitutions
       .filter((g) => g.label.trim() && g.options.some((o) => o.label.trim()))
       .map((g) => ({ ...g, options: g.options.filter((o) => o.label.trim()) }))
-    await onSave({
-      name: name.trim(),
-      bengaliName: bengaliName.trim() || undefined,
-      description: description.trim(),
-      emoji: emoji.trim() || '🍽️',
-      price: Number(price),
-      availability: availability.trim() || 'Today Only',
-      spice: (spice === 0 ? undefined : (spice as 1 | 2 | 3)),
-      substitutions: cleanedSubs.length > 0 ? cleanedSubs : undefined,
-    })
+    try {
+      await onSave({
+        name: name.trim(),
+        bengaliName: bengaliName.trim() || undefined,
+        description: description.trim(),
+        emoji: emoji.trim() || '🍽️',
+        price: Number(price),
+        availability: availability.trim() || 'Today Only',
+        spice: (spice === 0 ? undefined : (spice as 1 | 2 | 3)),
+        substitutions: cleanedSubs.length > 0 ? cleanedSubs : undefined,
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save. Try again.')
+    }
     setSaving(false)
   }
 
@@ -111,6 +117,8 @@ export default function SpecialMealForm({ initial, onSave, onCancel }: Props) {
       </div>
 
       <SubstitutionGroupsEditor groups={substitutions} onChange={setSubstitutions} />
+
+      {error && <p className="text-terracotta text-sm font-semibold">{error}</p>}
 
       <div className="flex gap-2 justify-end mt-1">
         <button

@@ -8,6 +8,8 @@ export const DELIVERY_FEES: Record<DeliveryZone, number> = {
   outside: 8,
 }
 
+export type OrderStatus = 'awaiting_confirmation' | 'confirmed'
+
 export interface Order {
   id: string
   createdAt: string
@@ -25,6 +27,7 @@ export interface Order {
   subtotal: number
   total: number
   screenshotDataUrl?: string
+  status: OrderStatus
 }
 
 const LAST_ORDER_KEY = 'bangi-last-order'
