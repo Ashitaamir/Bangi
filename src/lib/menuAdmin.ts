@@ -9,6 +9,7 @@ import {
   updateDoc,
 } from 'firebase/firestore'
 import { db } from './firebase'
+import { withTimeout } from './withTimeout'
 import type { PlanItem, SpecialMeal } from '../data/types'
 import { weeklyMenu as defaultWeeklyMenu, specialMeals as defaultSpecialMeals } from '../data/menu'
 
@@ -19,31 +20,31 @@ export interface PlanSettings {
 }
 
 export async function savePlanSettings(settings: PlanSettings) {
-  await setDoc(doc(db, 'weeklyPlan', 'settings'), settings)
+  await withTimeout(setDoc(doc(db, 'weeklyPlan', 'settings'), settings))
 }
 
 export async function addPlanItem(item: Omit<PlanItem, 'id'>) {
-  await addDoc(collection(db, 'weeklyPlanItems'), { ...item, createdAt: serverTimestamp() })
+  await withTimeout(addDoc(collection(db, 'weeklyPlanItems'), { ...item, createdAt: serverTimestamp() }))
 }
 
 export async function updatePlanItem(id: string, item: Omit<PlanItem, 'id'>) {
-  await updateDoc(doc(db, 'weeklyPlanItems', id), { ...item })
+  await withTimeout(updateDoc(doc(db, 'weeklyPlanItems', id), { ...item }))
 }
 
 export async function deletePlanItem(id: string) {
-  await deleteDoc(doc(db, 'weeklyPlanItems', id))
+  await withTimeout(deleteDoc(doc(db, 'weeklyPlanItems', id)))
 }
 
 export async function addSpecialMeal(item: Omit<SpecialMeal, 'id'>) {
-  await addDoc(collection(db, 'specialMeals'), { ...item, createdAt: serverTimestamp() })
+  await withTimeout(addDoc(collection(db, 'specialMeals'), { ...item, createdAt: serverTimestamp() }))
 }
 
 export async function updateSpecialMeal(id: string, item: Omit<SpecialMeal, 'id'>) {
-  await updateDoc(doc(db, 'specialMeals', id), { ...item })
+  await withTimeout(updateDoc(doc(db, 'specialMeals', id), { ...item }))
 }
 
 export async function deleteSpecialMeal(id: string) {
-  await deleteDoc(doc(db, 'specialMeals', id))
+  await withTimeout(deleteDoc(doc(db, 'specialMeals', id)))
 }
 
 // One-time helper for first-time setup: copies the built-in sample menu into
@@ -63,6 +64,6 @@ export async function seedDefaultMenu() {
 }
 
 export async function collectionIsEmpty(name: string) {
-  const snap = await getDocs(collection(db, name))
+  const snap = await withTimeout(getDocs(collection(db, name)))
   return snap.empty
 }

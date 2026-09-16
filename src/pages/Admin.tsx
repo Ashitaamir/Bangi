@@ -133,6 +133,8 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
   const [orderWindow, setOrderWindow] = useState('')
   const [planPrice, setPlanPrice] = useState('')
   const [settingsSaved, setSettingsSaved] = useState(false)
+  const [savingSettings, setSavingSettings] = useState(false)
+  const [settingsError, setSettingsError] = useState('')
 
   const [addingPlanItem, setAddingPlanItem] = useState(false)
   const [editingPlanItemId, setEditingPlanItemId] = useState<string | null>(null)
@@ -141,6 +143,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
 
   const [showSeed, setShowSeed] = useState(false)
   const [seeding, setSeeding] = useState(false)
+  const [seedError, setSeedError] = useState('')
 
   useEffect(() => {
     if (!menuLoading) {
@@ -157,20 +160,32 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
 
   async function handleSaveSettings(e: React.FormEvent) {
     e.preventDefault()
-    await savePlanSettings({
-      weekLabel,
-      orderWindow,
-      planPrice: Number(planPrice) || 0,
-    })
-    setSettingsSaved(true)
-    setTimeout(() => setSettingsSaved(false), 1800)
+    setSavingSettings(true)
+    setSettingsError('')
+    try {
+      await savePlanSettings({
+        weekLabel,
+        orderWindow,
+        planPrice: Number(planPrice) || 0,
+      })
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 1800)
+    } catch (err) {
+      setSettingsError(err instanceof Error ? err.message : 'Failed to save. Try again.')
+    }
+    setSavingSettings(false)
   }
 
   async function handleSeed() {
     setSeeding(true)
-    await seedDefaultMenu()
+    setSeedError('')
+    try {
+      await seedDefaultMenu()
+      setShowSeed(false)
+    } catch (err) {
+      setSeedError(err instanceof Error ? err.message : 'Failed to load sample menu. Try again.')
+    }
     setSeeding(false)
-    setShowSeed(false)
   }
 
   return (
@@ -219,6 +234,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
           >
             {seeding ? 'Loading…' : 'Load Sample Menu'}
           </button>
+          {seedError && <p className="text-terracotta text-sm font-semibold mt-2">{seedError}</p>}
         </div>
       )}
 
@@ -260,10 +276,12 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
           <div>
             <button
               type="submit"
-              className="bg-terracotta hover:bg-alpona text-cream font-bold px-5 py-2 rounded-full text-sm"
+              disabled={savingSettings}
+              className="bg-terracotta hover:bg-alpona text-cream font-bold px-5 py-2 rounded-full text-sm disabled:opacity-60"
             >
-              {settingsSaved ? 'Saved ✓' : 'Save Settings'}
+              {savingSettings ? 'Saving…' : settingsSaved ? 'Saved ✓' : 'Save Settings'}
             </button>
+            {settingsError && <p className="text-terracotta text-sm font-semibold mt-2">{settingsError}</p>}
           </div>
         </form>
       </section>
