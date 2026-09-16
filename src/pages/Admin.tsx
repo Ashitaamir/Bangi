@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useWeeklyMenu } from '../hooks/useWeeklyMenu'
 import { useSpecialMeals } from '../hooks/useSpecialMeals'
+import { useOrders } from '../hooks/useOrders'
 import { isFirebaseConfigured } from '../lib/firebase'
+import OrderCard from '../components/admin/OrderCard'
 import {
   addPlanItem,
   addSpecialMeal,
@@ -124,6 +126,8 @@ function AdminLogin({ onSignIn }: { onSignIn: (email: string, password: string) 
 function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
   const { weeklyMenu, loading: menuLoading } = useWeeklyMenu()
   const { specialMeals, loading: specialsLoading } = useSpecialMeals()
+  const { orders, loading: ordersLoading } = useOrders()
+  const pendingCount = orders.filter((o) => o.status !== 'confirmed').length
 
   const [weekLabel, setWeekLabel] = useState('')
   const [orderWindow, setOrderWindow] = useState('')
@@ -183,6 +187,24 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
       <h1 className="font-display text-3xl font-extrabold text-bark text-center mt-3">
         Bangi Admin
       </h1>
+
+      {/* Orders */}
+      <section className="mt-8">
+        <h2 className="font-display text-xl font-bold text-bark mb-3">
+          Orders {!ordersLoading && `(${pendingCount} awaiting confirmation)`}
+        </h2>
+        {ordersLoading ? (
+          <p className="text-sm text-bark/50">Loading orders…</p>
+        ) : orders.length === 0 ? (
+          <p className="text-sm text-bark/50">No orders yet — they'll show up here as customers check out.</p>
+        ) : (
+          <div className="grid gap-3">
+            {orders.map((order) => (
+              <OrderCard key={order.firestoreId} order={order} />
+            ))}
+          </div>
+        )}
+      </section>
 
       {showSeed && (
         <div className="mt-6 bg-gold/20 border border-gold rounded-xl p-4 text-center">
