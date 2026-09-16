@@ -1,6 +1,7 @@
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db, isFirebaseConfigured } from './firebase'
 import { withTimeout } from './withTimeout'
+import { stripUndefinedDeep } from './stripUndefined'
 import type { Order } from '../data/orders'
 
 // Writes the order to Firestore so the owner sees it in /admin. Throws on
@@ -11,8 +12,12 @@ import type { Order } from '../data/orders'
 export async function submitOrderToFirestore(order: Order): Promise<void> {
   if (!isFirebaseConfigured) return
   // order.id is our own human-readable memo code (e.g. "BANGI-913-5A8L"),
-  // unrelated to the Firestore document id -- keep it as a field.
-  await withTimeout(addDoc(collection(db, 'orders'), { ...order, createdAt: serverTimestamp() }))
+  // unrelated to the Firestore document id -- keep it as a field. Pickup
+  // orders leave deliveryZone unset, which stripUndefinedDeep needs to
+  // strip -- Firestore rejects an explicit `undefined` field outright.
+  await withTimeout(
+    addDoc(collection(db, 'orders'), { ...stripUndefinedDeep(order), createdAt: serverTimestamp() }),
+  )
 }
 
 export async function setOrderStatus(firestoreId: string, status: Order['status']) {

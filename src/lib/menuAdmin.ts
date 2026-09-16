@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './firebase'
 import { withTimeout } from './withTimeout'
+import { stripUndefinedDeep } from './stripUndefined'
 import type { PlanItem, SpecialMeal } from '../data/types'
 import { weeklyMenu as defaultWeeklyMenu, specialMeals as defaultSpecialMeals } from '../data/menu'
 
@@ -24,11 +25,13 @@ export async function savePlanSettings(settings: PlanSettings) {
 }
 
 export async function addPlanItem(item: Omit<PlanItem, 'id'>) {
-  await withTimeout(addDoc(collection(db, 'weeklyPlanItems'), { ...item, createdAt: serverTimestamp() }))
+  await withTimeout(
+    addDoc(collection(db, 'weeklyPlanItems'), { ...stripUndefinedDeep(item), createdAt: serverTimestamp() }),
+  )
 }
 
 export async function updatePlanItem(id: string, item: Omit<PlanItem, 'id'>) {
-  await withTimeout(updateDoc(doc(db, 'weeklyPlanItems', id), { ...item }))
+  await withTimeout(updateDoc(doc(db, 'weeklyPlanItems', id), stripUndefinedDeep({ ...item })))
 }
 
 export async function deletePlanItem(id: string) {
@@ -36,11 +39,13 @@ export async function deletePlanItem(id: string) {
 }
 
 export async function addSpecialMeal(item: Omit<SpecialMeal, 'id'>) {
-  await withTimeout(addDoc(collection(db, 'specialMeals'), { ...item, createdAt: serverTimestamp() }))
+  await withTimeout(
+    addDoc(collection(db, 'specialMeals'), { ...stripUndefinedDeep(item), createdAt: serverTimestamp() }),
+  )
 }
 
 export async function updateSpecialMeal(id: string, item: Omit<SpecialMeal, 'id'>) {
-  await withTimeout(updateDoc(doc(db, 'specialMeals', id), { ...item }))
+  await withTimeout(updateDoc(doc(db, 'specialMeals', id), stripUndefinedDeep({ ...item })))
 }
 
 export async function deleteSpecialMeal(id: string) {
