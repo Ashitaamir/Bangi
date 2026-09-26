@@ -1,8 +1,49 @@
-# Bangi
+# Bangi — website to automate ordering process
 
-A website for ordering weekly and special Bengali home-cooked meals, paid via Interac e-Transfer.
+Replaces a slow Instagram DM + manual Interac e-Transfer ordering process with a full self-serve ordering site for a Bengali cloud-kitchen business — customers order and pay online, the owner runs the whole menu and sees every order from one dashboard, with no code changes needed day-to-day.
 
-## Flow
+**Live demo:** [bangi2026.web.app](https://bangi2026.web.app)
+
+## Screenshots
+
+<!-- TODO: add screenshots to a screenshots/ folder and reference them here, e.g.
+![Home page](screenshots/home.png)
+![Weekly menu](screenshots/menu.png)
+![Admin dashboard](screenshots/admin.png)
+-->
+
+## Features
+
+- Weekly menu ordering with pinboard-style dish substitutions and extra-portion add-ons
+- One-off daily/weekly specials, priced individually
+- Checkout flow with delivery-zone pricing or pickup, Interac e-Transfer payment instructions, and payment-screenshot upload
+- Password-protected admin dashboard: live menu and specials editing, order tracking grouped by week, order status, and business settings (pickup address, delivery fees, payment email) — all editable without touching code
+- Automatic order-confirmation emails to customers
+- Smooth, Bengali-themed animations throughout
+
+## Tech stack
+
+React, TypeScript, Vite, Tailwind CSS, Framer Motion, React Router — Firebase (Firestore + Authentication) for the live menu, orders, and admin login, EmailJS for the confirmation email, Firebase Hosting for deployment.
+
+## Architecture & notable decisions
+
+- **No custom backend.** Firestore security rules do the access control instead of API code: a customer can create their own order but can never read anyone else's name, phone, address, or order history — only the signed-in owner account can list orders. A rule function validates the shape and size of every order on write, so malformed or oversized submissions are rejected before they ever reach the database.
+- **EmailJS over Firebase Cloud Functions** for the confirmation email, specifically to avoid requiring Firebase's paid Blaze plan (and a credit card on file) for what's a small, single-owner business — trades a little flexibility for a genuinely free stack end to end.
+- **Client-side image compression** for payment-proof screenshots (plain HTML5 Canvas, no dependency) before they're written to Firestore, to stay under Firestore's 1&nbsp;MB per-document limit without needing separate file storage.
+- **Graceful degradation when unconfigured.** Every Firestore-backed hook falls back to static sample data if Firebase isn't set up, so the app runs — and is reviewable — with zero external setup.
+
+## Getting started
+
+```bash
+git clone https://github.com/Ashitaamir/Bangi.git
+cd Bangi
+npm install
+npm run dev
+```
+
+This runs the site against built-in sample data, no setup required. To connect a real Firebase project for live menu editing, real orders, and admin login, see [Owner admin setup](#owner-admin-setup-one-time) below.
+
+## How it works
 
 1. **Home** — logo and an animated weekly-menu button.
 2. **Weekly Menu** (`/menu`) — one flat-rate plan (price set by the owner) listing this week's dishes. Some dishes offer substitutions (e.g. beef/mutton) via pinboard-style dropdowns; any dish can also offer an "extra portion" add-on at its own price.
@@ -11,20 +52,7 @@ A website for ordering weekly and special Bengali home-cooked meals, paid via In
 5. **Confirmation** (`/confirmation`) — order confirmed with an animated alpona bloom.
 6. **Admin** (`/admin`) — password-protected page where the owner sees incoming orders (customer info, what they ordered, payment screenshot, a way to mark each as confirmed), edits the weekly plan, dishes, substitutions, extra-portion prices, and specials, and edits business settings (Interac email, pickup address, delivery fees). Changes go live for customers immediately.
 
-## Stack
-
-React + TypeScript + Vite, Tailwind CSS, Framer Motion, React Router, Firebase (Firestore + Auth) for the live menu, orders, and admin login, EmailJS for the customer confirmation email.
-
 Orders are saved to Firestore's `orders` collection: a customer can create their own order but can never read anyone else's (name, phone, address, order history) — only the signed-in owner account can see the order list, via `/admin`. The payment screenshot is compressed client-side before saving so it fits comfortably inside Firestore's per-document size limit.
-
-## Develop
-
-```bash
-npm install
-npm run dev
-```
-
-The site works without Firebase configured — it just falls back to the sample menu baked into `src/data/menu.ts`, and `/admin` shows a "not set up yet" message instead of a login form. To make the menu live and editable, follow the setup below.
 
 ## Owner admin setup (one-time)
 
