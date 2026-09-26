@@ -6,11 +6,9 @@ Replaces a slow Instagram DM + manual Interac e-Transfer ordering process with a
 
 ## Screenshots
 
-<!-- TODO: add screenshots to a screenshots/ folder and reference them here, e.g.
-![Home page](screenshots/home.png)
-![Weekly menu](screenshots/menu.png)
-![Admin dashboard](screenshots/admin.png)
--->
+| Weekly Menu | Checkout |
+| --- | --- |
+| ![Weekly menu](screenshots/weekly-menu.webp) | ![Checkout](screenshots/checkout.webp) |
 
 ## Features
 
