@@ -18,17 +18,15 @@ Replaces a slow Instagram DM + manual Interac e-Transfer ordering process with a
 - One-off daily/weekly specials, priced individually
 - Checkout flow with delivery-zone pricing or pickup, Interac e-Transfer payment instructions, and payment-screenshot upload
 - Password-protected admin dashboard: live menu and specials editing, order tracking grouped by week, order status, and business settings (pickup address, delivery fees, payment email) — all editable without touching code
-- Automatic order-confirmation emails to customers
 - Smooth, Bengali-themed animations throughout
 
 ## Tech stack
 
-React, TypeScript, Vite, Tailwind CSS, Framer Motion, React Router — Firebase (Firestore + Authentication) for the live menu, orders, and admin login, EmailJS for the confirmation email, Firebase Hosting for deployment.
+React, TypeScript, Vite, Tailwind CSS, Framer Motion, React Router — Firebase (Firestore + Authentication) for the live menu, orders, and admin login, Firebase Hosting for deployment.
 
 ## Architecture & notable decisions
 
 - **No custom backend.** Firestore security rules do the access control instead of API code: a customer can create their own order but can never read anyone else's name, phone, address, or order history — only the signed-in owner account can list orders. A rule function validates the shape and size of every order on write, so malformed or oversized submissions are rejected before they ever reach the database.
-- **EmailJS over Firebase Cloud Functions** for the confirmation email, specifically to avoid requiring Firebase's paid Blaze plan (and a credit card on file) for what's a small, single-owner business — trades a little flexibility for a genuinely free stack end to end.
 - **Client-side image compression** for payment-proof screenshots (plain HTML5 Canvas, no dependency) before they're written to Firestore, to stay under Firestore's 1&nbsp;MB per-document limit without needing separate file storage.
 - **Graceful degradation when unconfigured.** Every Firestore-backed hook falls back to static sample data if Firebase isn't set up, so the app runs — and is reviewable — with zero external setup.
 
@@ -48,7 +46,7 @@ This runs the site against built-in sample data, no setup required. To connect a
 1. **Home** — logo and an animated weekly-menu button.
 2. **Weekly Menu** (`/menu`) — one flat-rate plan (price set by the owner) listing this week's dishes. Some dishes offer substitutions (e.g. beef/mutton) via pinboard-style dropdowns; any dish can also offer an "extra portion" add-on at its own price.
 3. **Specials** (`/special`) — today/tomorrow one-off meals, priced individually.
-4. **Checkout** (`/checkout`) — order summary, customer details, delivery (with a Downtown Montreal / Outside Downtown fee) or pickup, Interac payment instructions, and a payment screenshot upload. On confirm, the order is saved to Firestore (so the owner receives it) and a confirmation email is sent to the customer.
+4. **Checkout** (`/checkout`) — order summary, customer details, delivery (with a Downtown Montreal / Outside Downtown fee) or pickup, Interac payment instructions, and a payment screenshot upload. On confirm, the order is saved to Firestore so the owner receives it.
 5. **Confirmation** (`/confirmation`) — order confirmed with an animated alpona bloom.
 6. **Admin** (`/admin`) — password-protected page where the owner sees incoming orders (customer info, what they ordered, payment screenshot, a way to mark each as confirmed), edits the weekly plan, dishes, substitutions, extra-portion prices, and specials, and edits business settings (Interac email, pickup address, delivery fees). Changes go live for customers immediately.
 
@@ -93,30 +91,6 @@ This connects the site to a free Firebase project so the `/admin` page works and
 2. The first time, click **Load Sample Menu** to pre-fill Firestore with the example dishes — then edit or delete anything from there. Add dishes, set the plan price, add substitutions, add specials, all from that page.
 
 That's it for the menu and admin login — from here on, the owner only ever needs `/admin`, no code or redeploys required to change what customers see.
-
-### 7. (Optional) Set up the confirmation email
-
-Skip this and everything above still works fine — orders still save and show up in `/admin`, customers just won't get an automatic email. This step adds that email, using [EmailJS](https://www.emailjs.com) (free for up to 200 emails/month, no card required).
-
-1. Go to [emailjs.com](https://www.emailjs.com) and sign up.
-2. **Email Services** (left sidebar) → **Add New Service** → pick **Gmail** (simplest) → connect the Google account you want the emails to send *from* (can be a personal Gmail, or a dedicated one for the business).
-3. **Email Templates** → **Create New Template**. This is the email itself:
-   - Find the **"To email"** field in the template's settings (not the body) and set it to `{{to_email}}` — this is what actually routes the email to the customer, easy to miss.
-   - Subject, e.g.: `Your Bangi order is confirmed!`
-   - Body — write it however you like, using these placeholders anywhere in the text:
-     `{{to_name}}`, `{{order_id}}`, `{{order_summary}}`, `{{total}}`, `{{fulfillment_summary}}`
-   - Save the template.
-4. Collect three values:
-   - **Service ID** — shown next to the Gmail service you created (Email Services tab)
-   - **Template ID** — shown next to the template you just made (Email Templates tab)
-   - **Public Key** — **Account** (top right) → **General** tab
-5. Add all three to `.env.local`:
-   ```
-   VITE_EMAILJS_SERVICE_ID=...
-   VITE_EMAILJS_TEMPLATE_ID=...
-   VITE_EMAILJS_PUBLIC_KEY=...
-   ```
-6. Restart `npm run dev`. Place a real test order to confirm the email arrives.
 
 ## Deploying (going live)
 
