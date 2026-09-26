@@ -12,6 +12,7 @@ import { db } from './firebase'
 import { withTimeout } from './withTimeout'
 import { stripUndefinedDeep } from './stripUndefined'
 import type { PlanItem, SpecialMeal } from '../data/types'
+import type { BusinessSettings } from '../data/orders'
 import { weeklyMenu as defaultWeeklyMenu, specialMeals as defaultSpecialMeals } from '../data/menu'
 
 export interface PlanSettings {
@@ -22,6 +23,10 @@ export interface PlanSettings {
 
 export async function savePlanSettings(settings: PlanSettings) {
   await withTimeout(setDoc(doc(db, 'weeklyPlan', 'settings'), settings))
+}
+
+export async function saveBusinessSettings(settings: BusinessSettings) {
+  await withTimeout(setDoc(doc(db, 'settings', 'business'), settings))
 }
 
 export async function addPlanItem(item: Omit<PlanItem, 'id'>) {

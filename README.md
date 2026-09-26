@@ -9,7 +9,7 @@ A website for ordering weekly and special Bengali home-cooked meals, paid via In
 3. **Specials** (`/special`) — today/tomorrow one-off meals, priced individually.
 4. **Checkout** (`/checkout`) — order summary, customer details, delivery (with a Downtown Montreal / Outside Downtown fee) or pickup, Interac payment instructions, and a payment screenshot upload. On confirm, the order is saved to Firestore (so the owner receives it) and a confirmation email is sent to the customer.
 5. **Confirmation** (`/confirmation`) — order confirmed with an animated alpona bloom.
-6. **Admin** (`/admin`) — password-protected page where the owner sees incoming orders (customer info, what they ordered, payment screenshot, a way to mark each as confirmed) and edits the weekly plan, dishes, substitutions, extra-portion prices, and specials. Changes go live for customers immediately.
+6. **Admin** (`/admin`) — password-protected page where the owner sees incoming orders (customer info, what they ordered, payment screenshot, a way to mark each as confirmed), edits the weekly plan, dishes, substitutions, extra-portion prices, and specials, and edits business settings (Interac email, pickup address, delivery fees). Changes go live for customers immediately.
 
 ## Stack
 
@@ -39,7 +39,7 @@ This connects the site to a free Firebase project so the `/admin` page works and
 2. Click **Create database**, choose a location close to Montreal (e.g. `us-east4` or `northamerica-northeast1`), and start in **production mode**.
 3. Once created, go to the **Rules** tab, delete what's there, and paste in the contents of `firestore.rules` from this repo. Click **Publish**.
 
-   **Already did this before and just pulled new code?** The rules file gained an `orders` section since — go back to the Rules tab, replace the whole thing with the current contents of `firestore.rules`, and Publish again. Takes a minute and is safe to redo any time the file changes.
+   **Already did this before and just pulled new code?** The rules file has changed since (most recently: a `settings` section for the editable business settings) — go back to the Rules tab, replace the whole thing with the current contents of `firestore.rules`, and Publish again. Takes a minute and is safe to redo any time the file changes.
 
 ### 3. Turn on Email/Password sign-in (the owner's login)
 1. In the sidebar, click **Build → Authentication**, click **Get started**.
