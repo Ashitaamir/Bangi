@@ -39,7 +39,15 @@ function matchesSearch(order: AdminOrder, query: string) {
   )
 }
 
-export default function OrdersPanel({ orders, loading }: { orders: AdminOrder[]; loading: boolean }) {
+export default function OrdersPanel({
+  orders,
+  loading,
+  error,
+}: {
+  orders: AdminOrder[]
+  loading: boolean
+  error?: string
+}) {
   const [filter, setFilter] = useState<Filter>('pending')
   const [search, setSearch] = useState('')
 
@@ -95,7 +103,12 @@ export default function OrdersPanel({ orders, loading }: { orders: AdminOrder[];
         className="w-full rounded-lg border border-bark/20 px-4 py-2 mb-4 bg-cream text-sm focus:outline-none focus:ring-2 focus:ring-gold"
       />
 
-      {loading ? (
+      {error ? (
+        <p className="text-sm text-terracotta font-semibold">
+          Couldn't load orders: {error}. This usually means the Firestore security rules
+          haven't been published yet — see the README's "Owner admin setup" section.
+        </p>
+      ) : loading ? (
         <p className="text-sm text-bark/50">Loading orders…</p>
       ) : orders.length === 0 ? (
         <p className="text-sm text-bark/50">No orders yet — they'll show up here as customers check out.</p>

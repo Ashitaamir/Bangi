@@ -10,14 +10,16 @@ export interface AdminOrder extends Order {
 // Admin-only: live list of incoming orders, newest first. Only called from
 // the authenticated admin dashboard, matching the Firestore rule that
 // restricts order reads to signed-in owners.
-export function useOrders(): { orders: AdminOrder[]; loading: boolean } {
+export function useOrders(): { orders: AdminOrder[]; loading: boolean; error: string } {
   const [orders, setOrders] = useState<AdminOrder[] | null>(null)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (!isFirebaseConfigured) return
     const unsub = onSnapshot(
       query(collection(db, 'orders'), orderBy('createdAt', 'desc')),
       (snap) => {
+        setError('')
         setOrders(
           snap.docs.map((d) => {
             const data = d.data()
@@ -30,9 +32,13 @@ export function useOrders(): { orders: AdminOrder[]; loading: boolean } {
           }),
         )
       },
+      (err) => {
+        setError(err.message)
+        setOrders([])
+      },
     )
     return unsub
   }, [])
 
-  return { orders: orders ?? [], loading: orders === null }
+  return { orders: orders ?? [], loading: orders === null, error }
 }

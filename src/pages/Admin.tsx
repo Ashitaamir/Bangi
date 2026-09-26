@@ -129,7 +129,7 @@ function AdminLogin({ onSignIn }: { onSignIn: (email: string, password: string) 
 function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
   const { weeklyMenu, loading: menuLoading } = useWeeklyMenu()
   const { specialMeals, loading: specialsLoading } = useSpecialMeals()
-  const { orders, loading: ordersLoading } = useOrders()
+  const { orders, loading: ordersLoading, error: ordersError } = useOrders()
   const { settings: businessSettings, loading: businessLoading } = useBusinessSettings()
 
   const [weekLabel, setWeekLabel] = useState('')
@@ -244,7 +244,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
         Bangi Admin
       </h1>
 
-      <OrdersPanel orders={orders} loading={ordersLoading} />
+      <OrdersPanel orders={orders} loading={ordersLoading} error={ordersError} />
 
       {showSeed && (
         <div className="mt-6 bg-gold/20 border border-gold rounded-xl p-4 text-center">
