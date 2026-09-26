@@ -3,9 +3,20 @@ import type { CartItem } from '../context/CartContext'
 export type Fulfillment = 'delivery' | 'pickup'
 export type DeliveryZone = 'downtown' | 'outside'
 
-export const DELIVERY_FEES: Record<DeliveryZone, number> = {
-  downtown: 3,
-  outside: 8,
+export interface BusinessSettings {
+  interacEmail: string
+  pickupAddress: string
+  deliveryFeeDowntown: number
+  deliveryFeeOutside: number
+}
+
+// Used before the owner has ever saved Business Settings in /admin (or when
+// Firebase isn't configured at all).
+export const DEFAULT_BUSINESS_SETTINGS: BusinessSettings = {
+  interacEmail: 'orders@bangikitchen.ca',
+  pickupAddress: '5000 Boulevard De Maisonneuve O, Montreal — 5:00pm to 7:00pm',
+  deliveryFeeDowntown: 3,
+  deliveryFeeOutside: 8,
 }
 
 export type OrderStatus = 'awaiting_confirmation' | 'confirmed'

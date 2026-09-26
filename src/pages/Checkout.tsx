@@ -5,7 +5,6 @@ import { useCart } from '../context/CartContext'
 import {
   saveLastOrder,
   generateOrderId,
-  DELIVERY_FEES,
   type Fulfillment,
   type DeliveryZone,
   type Order,
@@ -13,13 +12,12 @@ import {
 import { submitOrderToFirestore } from '../lib/orders'
 import { sendOrderConfirmationEmail } from '../lib/email'
 import { compressImage } from '../lib/image'
+import { useBusinessSettings } from '../hooks/useBusinessSettings'
 import AlponaDivider from '../components/AlponaDivider'
-
-const INTERAC_EMAIL = 'orders@bangikitchen.ca'
-const PICKUP_ADDRESS = '5000 Boulevard De Maisonneuve O, Montreal — 5:00pm to 7:00pm'
 
 export default function Checkout() {
   const { items, subtotal, itemTotal, removeItem, clearCart } = useCart()
+  const { settings } = useBusinessSettings()
   const navigate = useNavigate()
   const orderId = useMemo(() => generateOrderId(), [])
 
@@ -37,7 +35,12 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  const deliveryFee = fulfillment === 'delivery' ? DELIVERY_FEES[deliveryZone] : 0
+  const deliveryFee =
+    fulfillment === 'delivery'
+      ? deliveryZone === 'downtown'
+        ? settings.deliveryFeeDowntown
+        : settings.deliveryFeeOutside
+      : 0
   const total = subtotal + deliveryFee
 
   const canSubmit =
@@ -82,7 +85,7 @@ export default function Checkout() {
       fulfillment,
       deliveryZone: fulfillment === 'delivery' ? deliveryZone : undefined,
       deliveryFee,
-      address: fulfillment === 'delivery' ? address : PICKUP_ADDRESS,
+      address: fulfillment === 'delivery' ? address : settings.pickupAddress,
       notes,
       items,
       subtotal,
@@ -109,7 +112,7 @@ export default function Checkout() {
       order_summary: items.map((i) => `${i.qty}x ${i.name}`).join(', '),
       total: `$${total.toFixed(2)}`,
       fulfillment_summary:
-        fulfillment === 'delivery' ? `Delivery to: ${address}` : `Pickup at: ${PICKUP_ADDRESS}`,
+        fulfillment === 'delivery' ? `Delivery to: ${address}` : `Pickup at: ${settings.pickupAddress}`,
     })
 
     setTimeout(() => navigate('/confirmation'), 400)
@@ -261,7 +264,9 @@ export default function Checkout() {
                       : 'bg-cream text-bark border-bark/20 hover:border-clay-dark'
                   }`}
                 >
-                  {zone === 'downtown' ? `Downtown Montreal +$${DELIVERY_FEES.downtown}` : `Outside Downtown +$${DELIVERY_FEES.outside}`}
+                  {zone === 'downtown'
+                    ? `Downtown Montreal +$${settings.deliveryFeeDowntown}`
+                    : `Outside Downtown +$${settings.deliveryFeeOutside}`}
                 </button>
               ))}
             </div>
@@ -275,7 +280,7 @@ export default function Checkout() {
           </>
         ) : (
           <p className="mt-3 text-sm text-clay-dark bg-cream rounded-lg px-4 py-2.5 border border-bark/10">
-            📍 Pickup at: <strong>{PICKUP_ADDRESS}</strong>
+            📍 Pickup at: <strong>{settings.pickupAddress}</strong>
           </p>
         )}
 
@@ -296,10 +301,10 @@ export default function Checkout() {
         <div className="mt-3 grid gap-2 text-sm">
           <div className="flex items-center justify-between bg-cream/10 rounded-lg px-3 py-2">
             <span>
-              Send to: <strong>{INTERAC_EMAIL}</strong>
+              Send to: <strong>{settings.interacEmail}</strong>
             </span>
             <button
-              onClick={() => copy(INTERAC_EMAIL, 'email')}
+              onClick={() => copy(settings.interacEmail, 'email')}
               className="text-gold text-xs font-bold hover:underline"
             >
               {copied === 'email' ? 'Copied!' : 'Copy'}

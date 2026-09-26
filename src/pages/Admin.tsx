@@ -4,14 +4,16 @@ import { useAuth } from '../context/AuthContext'
 import { useWeeklyMenu } from '../hooks/useWeeklyMenu'
 import { useSpecialMeals } from '../hooks/useSpecialMeals'
 import { useOrders } from '../hooks/useOrders'
+import { useBusinessSettings } from '../hooks/useBusinessSettings'
 import { isFirebaseConfigured } from '../lib/firebase'
-import OrderCard from '../components/admin/OrderCard'
+import OrdersPanel from '../components/admin/OrdersPanel'
 import {
   addPlanItem,
   addSpecialMeal,
   collectionIsEmpty,
   deletePlanItem,
   deleteSpecialMeal,
+  saveBusinessSettings,
   savePlanSettings,
   seedDefaultMenu,
   updatePlanItem,
@@ -20,6 +22,7 @@ import {
 import PlanItemForm from '../components/admin/PlanItemForm'
 import SpecialMealForm from '../components/admin/SpecialMealForm'
 import type { PlanItem, SpecialMeal } from '../data/types'
+import type { BusinessSettings } from '../data/orders'
 import Logo from '../components/Logo'
 
 export default function Admin() {
@@ -126,8 +129,8 @@ function AdminLogin({ onSignIn }: { onSignIn: (email: string, password: string) 
 function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
   const { weeklyMenu, loading: menuLoading } = useWeeklyMenu()
   const { specialMeals, loading: specialsLoading } = useSpecialMeals()
-  const { orders, loading: ordersLoading } = useOrders()
-  const pendingCount = orders.filter((o) => o.status !== 'confirmed').length
+  const { orders, loading: ordersLoading, error: ordersError } = useOrders()
+  const { settings: businessSettings, loading: businessLoading } = useBusinessSettings()
 
   const [weekLabel, setWeekLabel] = useState('')
   const [orderWindow, setOrderWindow] = useState('')
@@ -135,6 +138,14 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [savingSettings, setSavingSettings] = useState(false)
   const [settingsError, setSettingsError] = useState('')
+
+  const [interacEmail, setInteracEmail] = useState('')
+  const [pickupAddress, setPickupAddress] = useState('')
+  const [deliveryFeeDowntown, setDeliveryFeeDowntown] = useState('')
+  const [deliveryFeeOutside, setDeliveryFeeOutside] = useState('')
+  const [businessSaved, setBusinessSaved] = useState(false)
+  const [savingBusiness, setSavingBusiness] = useState(false)
+  const [businessError, setBusinessError] = useState('')
 
   const [addingPlanItem, setAddingPlanItem] = useState(false)
   const [editingPlanItemId, setEditingPlanItemId] = useState<string | null>(null)
@@ -153,6 +164,16 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [menuLoading])
+
+  useEffect(() => {
+    if (!businessLoading) {
+      setInteracEmail(businessSettings.interacEmail)
+      setPickupAddress(businessSettings.pickupAddress)
+      setDeliveryFeeDowntown(String(businessSettings.deliveryFeeDowntown))
+      setDeliveryFeeOutside(String(businessSettings.deliveryFeeOutside))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessLoading])
 
   useEffect(() => {
     collectionIsEmpty('weeklyPlanItems').then(setShowSeed)
@@ -174,6 +195,26 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
       setSettingsError(err instanceof Error ? err.message : 'Failed to save. Try again.')
     }
     setSavingSettings(false)
+  }
+
+  async function handleSaveBusinessSettings(e: React.FormEvent) {
+    e.preventDefault()
+    setSavingBusiness(true)
+    setBusinessError('')
+    const settings: BusinessSettings = {
+      interacEmail: interacEmail.trim(),
+      pickupAddress: pickupAddress.trim(),
+      deliveryFeeDowntown: Number(deliveryFeeDowntown) || 0,
+      deliveryFeeOutside: Number(deliveryFeeOutside) || 0,
+    }
+    try {
+      await saveBusinessSettings(settings)
+      setBusinessSaved(true)
+      setTimeout(() => setBusinessSaved(false), 1800)
+    } catch (err) {
+      setBusinessError(err instanceof Error ? err.message : 'Failed to save. Try again.')
+    }
+    setSavingBusiness(false)
   }
 
   async function handleSeed() {
@@ -203,23 +244,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
         Bangi Admin
       </h1>
 
-      {/* Orders */}
-      <section className="mt-8">
-        <h2 className="font-display text-xl font-bold text-bark mb-3">
-          Orders {!ordersLoading && `(${pendingCount} awaiting confirmation)`}
-        </h2>
-        {ordersLoading ? (
-          <p className="text-sm text-bark/50">Loading orders…</p>
-        ) : orders.length === 0 ? (
-          <p className="text-sm text-bark/50">No orders yet — they'll show up here as customers check out.</p>
-        ) : (
-          <div className="grid gap-3">
-            {orders.map((order) => (
-              <OrderCard key={order.firestoreId} order={order} />
-            ))}
-          </div>
-        )}
-      </section>
+      <OrdersPanel orders={orders} loading={ordersLoading} error={ordersError} />
 
       {showSeed && (
         <div className="mt-6 bg-gold/20 border border-gold rounded-xl p-4 text-center">
@@ -282,6 +307,70 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
               {savingSettings ? 'Saving…' : settingsSaved ? 'Saved ✓' : 'Save Settings'}
             </button>
             {settingsError && <p className="text-terracotta text-sm font-semibold mt-2">{settingsError}</p>}
+          </div>
+        </form>
+      </section>
+
+      {/* Business settings */}
+      <section className="mt-8">
+        <h2 className="font-display text-xl font-bold text-bark mb-3">Business Settings</h2>
+        <form
+          onSubmit={handleSaveBusinessSettings}
+          className="grid gap-3 bg-parchment/70 rounded-xl p-4 rustic-border"
+        >
+          <label className="text-sm text-bark/70">
+            Interac e-Transfer email
+            <input
+              type="email"
+              value={interacEmail}
+              onChange={(e) => setInteracEmail(e.target.value)}
+              placeholder="orders@bangikitchen.ca"
+              className="mt-1 w-full rounded border border-bark/20 px-3 py-2 bg-cream"
+            />
+          </label>
+          <label className="text-sm text-bark/70">
+            Pickup address (and hours)
+            <textarea
+              value={pickupAddress}
+              onChange={(e) => setPickupAddress(e.target.value)}
+              placeholder="5000 Boulevard De Maisonneuve O, Montreal — 5:00pm to 7:00pm"
+              rows={2}
+              className="mt-1 w-full rounded border border-bark/20 px-3 py-2 bg-cream"
+            />
+          </label>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label className="text-sm text-bark/70">
+              Delivery fee — Downtown Montreal ($)
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                value={deliveryFeeDowntown}
+                onChange={(e) => setDeliveryFeeDowntown(e.target.value)}
+                className="mt-1 w-full rounded border border-bark/20 px-3 py-2 bg-cream"
+              />
+            </label>
+            <label className="text-sm text-bark/70">
+              Delivery fee — Outside Downtown ($)
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                value={deliveryFeeOutside}
+                onChange={(e) => setDeliveryFeeOutside(e.target.value)}
+                className="mt-1 w-full rounded border border-bark/20 px-3 py-2 bg-cream"
+              />
+            </label>
+          </div>
+          <div>
+            <button
+              type="submit"
+              disabled={savingBusiness}
+              className="bg-terracotta hover:bg-alpona text-cream font-bold px-5 py-2 rounded-full text-sm disabled:opacity-60"
+            >
+              {savingBusiness ? 'Saving…' : businessSaved ? 'Saved ✓' : 'Save Settings'}
+            </button>
+            {businessError && <p className="text-terracotta text-sm font-semibold mt-2">{businessError}</p>}
           </div>
         </form>
       </section>
