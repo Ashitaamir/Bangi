@@ -4,17 +4,28 @@ import OrderCard from './OrderCard'
 
 type Filter = 'pending' | 'confirmed' | 'all'
 
-function dayLabel(iso: string) {
-  if (!iso) return 'Unknown date'
-  const date = new Date(iso)
-  const today = new Date()
-  const yesterday = new Date()
-  yesterday.setDate(today.getDate() - 1)
-  const sameDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
-  if (sameDay(date, today)) return 'Today'
-  if (sameDay(date, yesterday)) return 'Yesterday'
-  return date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+// Ordering weeks run Friday -> Thursday. Given an order's timestamp, finds
+// the Friday that starts its week and returns a stable sort key alongside
+// the "Week of ..." label used as the group header.
+function weekStart(iso: string): Date {
+  const d = iso ? new Date(iso) : new Date(0)
+  d.setHours(0, 0, 0, 0)
+  const day = d.getDay() // 0=Sun .. 5=Fri .. 6=Sat
+  const daysSinceFriday = (day - 5 + 7) % 7
+  d.setDate(d.getDate() - daysSinceFriday)
+  return d
+}
+
+function weekLabel(iso: string) {
+  if (!iso) return 'Unknown week'
+  const start = weekStart(iso)
+  const now = new Date()
+  const sameYear = start.getFullYear() === now.getFullYear()
+  return `Week of ${start.toLocaleDateString(undefined, {
+    month: 'long',
+    day: 'numeric',
+    year: sameYear ? undefined : 'numeric',
+  })}`
 }
 
 function matchesSearch(order: AdminOrder, query: string) {
@@ -42,13 +53,15 @@ export default function OrdersPanel({ orders, loading }: { orders: AdminOrder[];
   }, [orders, filter, search])
 
   const groups = useMemo(() => {
-    const map = new Map<string, AdminOrder[]>()
+    const map = new Map<number, { label: string; orders: AdminOrder[] }>()
     for (const order of filtered) {
-      const label = dayLabel(order.createdAt)
-      if (!map.has(label)) map.set(label, [])
-      map.get(label)!.push(order)
+      const key = weekStart(order.createdAt).getTime()
+      if (!map.has(key)) map.set(key, { label: weekLabel(order.createdAt), orders: [] })
+      map.get(key)!.orders.push(order)
     }
-    return Array.from(map.entries())
+    // `orders` arrives newest-first from Firestore, so insertion order above
+    // already puts the most recent week first -- no extra sort needed.
+    return Array.from(map.values())
   }, [filtered])
 
   return (
@@ -89,10 +102,16 @@ export default function OrdersPanel({ orders, loading }: { orders: AdminOrder[];
       ) : filtered.length === 0 ? (
         <p className="text-sm text-bark/50">No orders match.</p>
       ) : (
-        <div className="grid gap-5">
-          {groups.map(([label, group]) => (
+        <div className="grid gap-6">
+          {groups.map(({ label, orders: group }) => (
             <div key={label}>
-              <p className="text-xs uppercase tracking-wide font-bold text-clay-dark mb-2">{label}</p>
+              <div className="flex items-center gap-3 mb-3">
+                <p className="font-display text-lg font-bold text-bark whitespace-nowrap">{label}</p>
+                <span className="h-px flex-1 bg-bark/15" />
+                <span className="text-xs font-bold text-clay-dark shrink-0">
+                  {group.length} order{group.length === 1 ? '' : 's'}
+                </span>
+              </div>
               <div className="grid gap-3">
                 {group.map((order) => (
                   <OrderCard key={order.firestoreId} order={order} />

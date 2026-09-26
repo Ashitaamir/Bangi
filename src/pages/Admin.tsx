@@ -6,7 +6,7 @@ import { useSpecialMeals } from '../hooks/useSpecialMeals'
 import { useOrders } from '../hooks/useOrders'
 import { useBusinessSettings } from '../hooks/useBusinessSettings'
 import { isFirebaseConfigured } from '../lib/firebase'
-import OrderCard from '../components/admin/OrderCard'
+import OrdersPanel from '../components/admin/OrdersPanel'
 import {
   addPlanItem,
   addSpecialMeal,
@@ -131,7 +131,6 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
   const { specialMeals, loading: specialsLoading } = useSpecialMeals()
   const { orders, loading: ordersLoading } = useOrders()
   const { settings: businessSettings, loading: businessLoading } = useBusinessSettings()
-  const pendingCount = orders.filter((o) => o.status !== 'confirmed').length
 
   const [weekLabel, setWeekLabel] = useState('')
   const [orderWindow, setOrderWindow] = useState('')
@@ -245,23 +244,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
         Bangi Admin
       </h1>
 
-      {/* Orders */}
-      <section className="mt-8">
-        <h2 className="font-display text-xl font-bold text-bark mb-3">
-          Orders {!ordersLoading && `(${pendingCount} awaiting confirmation)`}
-        </h2>
-        {ordersLoading ? (
-          <p className="text-sm text-bark/50">Loading orders…</p>
-        ) : orders.length === 0 ? (
-          <p className="text-sm text-bark/50">No orders yet — they'll show up here as customers check out.</p>
-        ) : (
-          <div className="grid gap-3">
-            {orders.map((order) => (
-              <OrderCard key={order.firestoreId} order={order} />
-            ))}
-          </div>
-        )}
-      </section>
+      <OrdersPanel orders={orders} loading={ordersLoading} />
 
       {showSeed && (
         <div className="mt-6 bg-gold/20 border border-gold rounded-xl p-4 text-center">

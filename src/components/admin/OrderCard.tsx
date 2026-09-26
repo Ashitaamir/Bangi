@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { AdminOrder } from '../../hooks/useOrders'
-import { setOrderStatus } from '../../lib/orders'
+import { deleteOrder, setOrderStatus } from '../../lib/orders'
 
 function timeAgo(iso: string) {
   if (!iso) return ''
@@ -16,6 +16,9 @@ function timeAgo(iso: string) {
 export default function OrderCard({ order }: { order: AdminOrder }) {
   const [expanded, setExpanded] = useState(false)
   const [updating, setUpdating] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
   const confirmed = order.status === 'confirmed'
 
   async function toggleConfirmed() {
@@ -24,6 +27,17 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
       await setOrderStatus(order.firestoreId, confirmed ? 'awaiting_confirmation' : 'confirmed')
     } finally {
       setUpdating(false)
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      await deleteOrder(order.firestoreId)
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete. Try again.')
+      setDeleting(false)
     }
   }
 
@@ -96,6 +110,36 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
           </button>
         )}
       </div>
+
+      <div className="flex items-center justify-end mt-2">
+        {confirmingDelete ? (
+          <span className="flex items-center gap-2 text-xs">
+            <span className="text-clay-dark">Delete this order permanently?</span>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="font-bold text-terracotta hover:underline disabled:opacity-60"
+            >
+              {deleting ? 'Deleting…' : 'Yes, delete'}
+            </button>
+            <button
+              onClick={() => setConfirmingDelete(false)}
+              disabled={deleting}
+              className="font-semibold text-bark/60 hover:text-bark"
+            >
+              Cancel
+            </button>
+          </span>
+        ) : (
+          <button
+            onClick={() => setConfirmingDelete(true)}
+            className="text-xs font-semibold text-bark/30 hover:text-terracotta"
+          >
+            Delete order
+          </button>
+        )}
+      </div>
+      {deleteError && <p className="text-terracotta text-xs font-semibold text-right mt-1">{deleteError}</p>}
 
       {expanded && order.screenshotDataUrl && (
         <div
