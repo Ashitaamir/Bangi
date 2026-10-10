@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="min-h-screen flex flex-col items-center justify-center px-4 text-center relative overflow-hidden">
+      <section className="min-h-screen flex flex-col items-center px-4 pt-16 sm:pt-20 text-center relative overflow-hidden">
         <FloatingSpices />
 
         <h1 className="sr-only">Bangi — Flavors of Bengal, Savored with Love!</h1>
