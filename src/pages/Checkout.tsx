@@ -32,7 +32,7 @@ export default function Checkout() {
   const [screenshot, setScreenshot] = useState<string | undefined>()
   const [screenshotName, setScreenshotName] = useState<string>('')
   const [compressing, setCompressing] = useState(false)
-  const [copied, setCopied] = useState<'email' | 'memo' | null>(null)
+  const [copied, setCopied] = useState<'email' | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
@@ -67,7 +67,7 @@ export default function Checkout() {
     setCompressing(false)
   }
 
-  function copy(text: string, which: 'email' | 'memo') {
+  function copy(text: string, which: 'email') {
     navigator.clipboard?.writeText(text).then(() => {
       setCopied(which)
       setTimeout(() => setCopied(null), 1500)
@@ -337,17 +337,6 @@ export default function Checkout() {
               className="text-gold text-xs font-bold hover:underline"
             >
               {copied === 'email' ? 'Copied!' : 'Copy'}
-            </button>
-          </div>
-          <div className="flex items-center justify-between bg-cream/10 rounded-lg px-3 py-2">
-            <span>
-              Memo / Reference: <strong>{orderId}</strong>
-            </span>
-            <button
-              onClick={() => copy(orderId, 'memo')}
-              className="text-gold text-xs font-bold hover:underline"
-            >
-              {copied === 'memo' ? 'Copied!' : 'Copy'}
             </button>
           </div>
           <div className="flex items-center justify-between bg-cream/10 rounded-lg px-3 py-2">
