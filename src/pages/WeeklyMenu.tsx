@@ -15,6 +15,8 @@ export default function WeeklyMenu() {
   const [selections, setSelections] = useState<Record<string, Record<string, string>>>({})
   // extraQty[itemId] = number of extra portions
   const [extraQty, setExtraQty] = useState<Record<string, number>>({})
+  // swaps[itemId] = id of the other weekly item it's being substituted with, or null
+  const [swaps, setSwaps] = useState<Record<string, string | null>>({})
   const [justAdded, setJustAdded] = useState(false)
 
   function setSelection(itemId: string, groupId: string, optionId: string) {
@@ -23,6 +25,10 @@ export default function WeeklyMenu() {
 
   function setExtra(itemId: string, qty: number) {
     setExtraQty((prev) => ({ ...prev, [itemId]: qty }))
+  }
+
+  function setSwap(itemId: string, otherItemId: string | null) {
+    setSwaps((prev) => ({ ...prev, [itemId]: otherItemId }))
   }
 
   const chosenSubs: ChosenSub[] = weeklyMenu.items.flatMap((item) =>
@@ -41,6 +47,26 @@ export default function WeeklyMenu() {
     }),
   )
 
+  const swapSubs: ChosenSub[] = weeklyMenu.items.flatMap((item) => {
+    const otherId = swaps[item.id]
+    if (!otherId) return []
+    const other = weeklyMenu.items.find((i) => i.id === otherId)
+    if (!other) return []
+    return [
+      {
+        itemId: item.id,
+        itemName: item.name,
+        groupId: 'swap',
+        groupLabel: 'Substitute',
+        optionId: other.id,
+        optionLabel: other.name,
+        priceDelta: (other.extraPrice ?? 0) - (item.extraPrice ?? 0),
+      },
+    ]
+  })
+
+  const allChosenSubs = [...chosenSubs, ...swapSubs]
+
   const extras: ExtraLine[] = weeklyMenu.items
     .filter((item) => item.extraPrice != null && (extraQty[item.id] ?? 0) > 0)
     .map((item) => ({
@@ -51,7 +77,7 @@ export default function WeeklyMenu() {
       unitPrice: item.extraPrice!,
     }))
 
-  const subsDelta = chosenSubs.reduce((s, c) => s + c.priceDelta, 0)
+  const subsDelta = allChosenSubs.reduce((s, c) => s + c.priceDelta, 0)
   const extrasTotal = extras.reduce((s, e) => s + e.qty * e.unitPrice, 0)
   const grandTotal = weeklyMenu.planPrice + subsDelta + extrasTotal
 
@@ -63,7 +89,7 @@ export default function WeeklyMenu() {
       emoji: '🍱',
       basePrice: weeklyMenu.planPrice,
       qty: 1,
-      chosenSubs,
+      chosenSubs: allChosenSubs,
       extras,
     })
     setJustAdded(true)
@@ -115,10 +141,13 @@ export default function WeeklyMenu() {
             <PlanItemRow
               key={item.id}
               item={item}
+              weeklyItems={weeklyMenu.items}
               selections={selections[item.id] ?? {}}
               onSelectionChange={(groupId, optionId) => setSelection(item.id, groupId, optionId)}
               extraQty={extraQty[item.id] ?? 0}
               onExtraQtyChange={(qty) => setExtra(item.id, qty)}
+              swapItemId={swaps[item.id] ?? null}
+              onSwapChange={(otherItemId) => setSwap(item.id, otherItemId)}
             />
           ))}
         </div>

@@ -4,19 +4,26 @@ import type { PlanItem } from '../data/types'
 
 interface Props {
   item: PlanItem
+  weeklyItems: PlanItem[]
   selections: Record<string, string>
   onSelectionChange: (groupId: string, optionId: string) => void
   extraQty: number
   onExtraQtyChange: (qty: number) => void
+  swapItemId: string | null
+  onSwapChange: (otherItemId: string | null) => void
 }
 
 export default function PlanItemRow({
   item,
+  weeklyItems,
   selections,
   onSelectionChange,
   extraQty,
   onExtraQtyChange,
+  swapItemId,
+  onSwapChange,
 }: Props) {
+  const swapOptions = weeklyItems.filter((i) => i.id !== item.id)
   return (
     <div className="py-4 border-b border-dashed border-bark/15 last:border-b-0">
       <div className="flex items-start gap-3">
@@ -39,6 +46,30 @@ export default function PlanItemRow({
               onChange={(optionId) => onSelectionChange(g.id, optionId)}
             />
           ))}
+        </div>
+      )}
+
+      {swapOptions.length > 0 && (
+        <div className="mt-3 flex items-center justify-between gap-3 bg-cream rounded-lg px-3 py-2 border border-bark/10">
+          <span className="text-sm text-clay-dark shrink-0">
+            Want to substitute <strong className="text-bark">{item.name}</strong>?
+          </span>
+          <select
+            value={swapItemId ?? ''}
+            onChange={(e) => onSwapChange(e.target.value || null)}
+            className="text-xs sm:text-sm font-semibold text-bark bg-parchment rounded-full px-3 py-1.5 border border-bark/15"
+          >
+            <option value="">No substitution</option>
+            {swapOptions.map((opt) => {
+              const delta = (opt.extraPrice ?? 0) - (item.extraPrice ?? 0)
+              return (
+                <option key={opt.id} value={opt.id}>
+                  {opt.name}
+                  {delta !== 0 ? ` (${delta > 0 ? '+' : '-'}$${Math.abs(delta).toFixed(2)})` : ''}
+                </option>
+              )
+            })}
+          </select>
         </div>
       )}
 
