@@ -394,6 +394,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
         {addingPlanItem && (
           <div className="mb-3">
             <PlanItemForm
+              allItems={weeklyMenu.items}
               onSave={async (item) => {
                 await addPlanItem(item)
                 setAddingPlanItem(false)
@@ -409,6 +410,7 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
               <PlanItemForm
                 key={item.id}
                 initial={item}
+                allItems={weeklyMenu.items}
                 onSave={async (updated) => {
                   await updatePlanItem(item.id, updated)
                   setEditingPlanItemId(null)

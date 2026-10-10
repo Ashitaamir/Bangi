@@ -4,11 +4,12 @@ import type { PlanItem, SubstitutionGroup } from '../../data/types'
 
 interface Props {
   initial?: PlanItem
+  allItems: PlanItem[]
   onSave: (item: Omit<PlanItem, 'id'>) => Promise<void>
   onCancel: () => void
 }
 
-export default function PlanItemForm({ initial, onSave, onCancel }: Props) {
+export default function PlanItemForm({ initial, allItems, onSave, onCancel }: Props) {
   const [name, setName] = useState(initial?.name ?? '')
   const [bengaliName, setBengaliName] = useState(initial?.bengaliName ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
@@ -20,8 +21,25 @@ export default function PlanItemForm({ initial, onSave, onCancel }: Props) {
   const [substitutions, setSubstitutions] = useState<SubstitutionGroup[]>(
     initial?.substitutions ?? [],
   )
+  // swapPrices[otherItemId] = price delta as a string, or '' if not offered as a substitute
+  const [swapPrices, setSwapPrices] = useState<Record<string, string>>(() => {
+    const map: Record<string, string> = {}
+    for (const s of initial?.swapOptions ?? []) map[s.itemId] = String(s.priceDelta)
+    return map
+  })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  const otherItems = allItems.filter((i) => i.id !== initial?.id)
+
+  function toggleSwap(itemId: string, checked: boolean) {
+    setSwapPrices((prev) => {
+      const next = { ...prev }
+      if (checked) next[itemId] = next[itemId] ?? '0'
+      else delete next[itemId]
+      return next
+    })
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,6 +49,10 @@ export default function PlanItemForm({ initial, onSave, onCancel }: Props) {
     const cleanedSubs = substitutions
       .filter((g) => g.label.trim() && g.options.some((o) => o.label.trim()))
       .map((g) => ({ ...g, options: g.options.filter((o) => o.label.trim()) }))
+    const swapOptions = Object.entries(swapPrices).map(([itemId, price]) => ({
+      itemId,
+      priceDelta: price === '' ? 0 : Number(price),
+    }))
     try {
       await onSave({
         name: name.trim(),
@@ -40,6 +62,7 @@ export default function PlanItemForm({ initial, onSave, onCancel }: Props) {
         spice: (spice === 0 ? undefined : (spice as 1 | 2 | 3)) ,
         extraPrice: extraPrice === '' ? undefined : Number(extraPrice),
         substitutions: cleanedSubs.length > 0 ? cleanedSubs : undefined,
+        swapOptions: swapOptions.length > 0 ? swapOptions : undefined,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save. Try again.')
@@ -107,6 +130,49 @@ export default function PlanItemForm({ initial, onSave, onCancel }: Props) {
       </div>
 
       <SubstitutionGroupsEditor groups={substitutions} onChange={setSubstitutions} />
+
+      <div className="rounded border border-bark/15 bg-parchment/60 p-3">
+        <p className="text-sm font-semibold text-bark">Substitute with another dish</p>
+        <p className="text-xs text-bark/60 mt-0.5">
+          Pick which dishes customers can swap this one for, and the price difference. Leave
+          every box unchecked to offer every other dish as a swap automatically, priced off each
+          dish's extra portion price.
+        </p>
+        {otherItems.length === 0 ? (
+          <p className="text-xs text-bark/50 mt-2">Add more dishes first to offer swaps.</p>
+        ) : (
+          <div className="mt-2 grid gap-1.5">
+            {otherItems.map((other) => {
+              const checked = other.id in swapPrices
+              return (
+                <div key={other.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id={`swap-${other.id}`}
+                    checked={checked}
+                    onChange={(e) => toggleSwap(other.id, e.target.checked)}
+                  />
+                  <label htmlFor={`swap-${other.id}`} className="text-sm text-bark flex-1">
+                    {other.emoji} {other.name}
+                  </label>
+                  {checked && (
+                    <input
+                      type="number"
+                      step="0.5"
+                      value={swapPrices[other.id]}
+                      onChange={(e) =>
+                        setSwapPrices((prev) => ({ ...prev, [other.id]: e.target.value }))
+                      }
+                      placeholder="0"
+                      className="w-20 rounded border border-bark/20 px-2 py-1 text-sm bg-cream"
+                    />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
 
       {error && <p className="text-terracotta text-sm font-semibold">{error}</p>}
 

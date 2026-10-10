@@ -23,7 +23,17 @@ export default function PlanItemRow({
   swapItemId,
   onSwapChange,
 }: Props) {
-  const swapOptions = weeklyItems.filter((i) => i.id !== item.id)
+  const swapOptions =
+    item.swapOptions && item.swapOptions.length > 0
+      ? item.swapOptions
+          .map((s) => {
+            const other = weeklyItems.find((i) => i.id === s.itemId)
+            return other ? { ...other, delta: s.priceDelta } : null
+          })
+          .filter((o): o is PlanItem & { delta: number } => o !== null)
+      : weeklyItems
+          .filter((i) => i.id !== item.id)
+          .map((other) => ({ ...other, delta: (other.extraPrice ?? 0) - (item.extraPrice ?? 0) }))
   return (
     <div className="py-4 border-b border-dashed border-bark/15 last:border-b-0">
       <div className="flex items-start gap-3">
@@ -60,15 +70,12 @@ export default function PlanItemRow({
             className="text-xs sm:text-sm font-semibold text-bark bg-parchment rounded-full px-3 py-1.5 border border-bark/15"
           >
             <option value="">No substitution</option>
-            {swapOptions.map((opt) => {
-              const delta = (opt.extraPrice ?? 0) - (item.extraPrice ?? 0)
-              return (
-                <option key={opt.id} value={opt.id}>
-                  {opt.name}
-                  {delta !== 0 ? ` (${delta > 0 ? '+' : '-'}$${Math.abs(delta).toFixed(2)})` : ''}
-                </option>
-              )
-            })}
+            {swapOptions.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.name}
+                {opt.delta !== 0 ? ` (${opt.delta > 0 ? '+' : '-'}$${Math.abs(opt.delta).toFixed(2)})` : ''}
+              </option>
+            ))}
           </select>
         </div>
       )}

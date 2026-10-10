@@ -52,6 +52,8 @@ export default function WeeklyMenu() {
     if (!otherId) return []
     const other = weeklyMenu.items.find((i) => i.id === otherId)
     if (!other) return []
+    const curated = item.swapOptions?.find((s) => s.itemId === otherId)
+    const priceDelta = curated ? curated.priceDelta : (other.extraPrice ?? 0) - (item.extraPrice ?? 0)
     return [
       {
         itemId: item.id,
@@ -60,7 +62,7 @@ export default function WeeklyMenu() {
         groupLabel: 'Substitute',
         optionId: other.id,
         optionLabel: other.name,
-        priceDelta: (other.extraPrice ?? 0) - (item.extraPrice ?? 0),
+        priceDelta,
       },
     ]
   })

@@ -14,6 +14,11 @@ export interface SubstitutionGroup {
 // A dish included in the flat-rate weekly plan. It has no price of its own —
 // the plan is priced as a whole — but can optionally offer substitutions
 // (free or priced) and/or an extra portion at its own add-on price.
+export interface SwapOption {
+  itemId: string
+  priceDelta: number
+}
+
 export interface PlanItem {
   id: string
   name: string
@@ -23,6 +28,10 @@ export interface PlanItem {
   spice?: 1 | 2 | 3
   substitutions?: SubstitutionGroup[]
   extraPrice?: number
+  // Which other weekly items this dish can be swapped for, and the price
+  // difference for each. When unset, the Weekly Menu page falls back to
+  // offering every other item as a swap, priced off their extraPrice.
+  swapOptions?: SwapOption[]
 }
 
 export interface WeeklyMenu {
