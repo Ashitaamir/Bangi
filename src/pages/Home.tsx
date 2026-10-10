@@ -15,30 +15,24 @@ export default function Home() {
 
         <h1 className="sr-only">Bangi — Flavors of Bengal, Savored with Love!</h1>
         <Logo className="h-32 sm:h-40" />
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.6 }}
-          className="text-clay-dark font-medium mt-1 max-w-sm"
-        >
-          Home cooked meals with love.
-        </motion.p>
 
-        <motion.button
-          initial={{ opacity: 0, scale: 0.85 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.55, type: 'spring', stiffness: 140, damping: 12 }}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          onClick={() => navigate('/menu')}
-          className="group relative mt-5 flex flex-col items-center"
-        >
-          <SizzlingPan />
-          <span className="mt-3 bg-terracotta group-hover:bg-alpona transition-colors text-cream font-bold px-6 py-2.5 rounded-full shadow-lg">
-            This Week's Menu
-          </span>
-          <span className="text-xs text-clay-dark mt-1.5">Ordering open Fri–Sun midnight</span>
-        </motion.button>
+        <div className="flex-1 flex items-center justify-center">
+          <motion.button
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.35, type: 'spring', stiffness: 140, damping: 12 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => navigate('/menu')}
+            className="group relative flex flex-col items-center"
+          >
+            <SizzlingPan size={220} />
+            <span className="mt-4 bg-terracotta group-hover:bg-alpona transition-colors text-cream font-bold text-lg px-8 py-3.5 rounded-full shadow-lg">
+              This Week's Menu
+            </span>
+            <span className="text-xs text-clay-dark mt-2">Ordering open Fri–Sun midnight</span>
+          </motion.button>
+        </div>
       </section>
 
       <CartBar />
