@@ -2,7 +2,6 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo'
 import CartBar from '../components/CartBar'
-import SizzlingPan from '../components/SizzlingPan'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -14,7 +13,7 @@ export default function Home() {
         <FloatingSpices />
 
         <h1 className="sr-only">Bangi — Flavors of Bengal, Savored with Love!</h1>
-        <Logo className="h-32 sm:h-40" />
+        <Logo className="h-44 sm:h-56" />
 
         <div className="flex-1 flex items-center justify-center">
           <motion.button
@@ -26,8 +25,7 @@ export default function Home() {
             onClick={() => navigate('/menu')}
             className="group relative flex flex-col items-center"
           >
-            <SizzlingPan size={220} />
-            <span className="mt-4 bg-terracotta group-hover:bg-alpona transition-colors text-cream font-bold text-lg px-8 py-3.5 rounded-full shadow-lg">
+            <span className="bg-terracotta group-hover:bg-alpona transition-colors text-cream font-bold text-lg px-8 py-3.5 rounded-full shadow-lg">
               This Week's Menu
             </span>
             <span className="text-xs text-clay-dark mt-2">Ordering open Fri–Sun midnight</span>
