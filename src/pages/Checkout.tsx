@@ -21,7 +21,8 @@ export default function Checkout() {
   const navigate = useNavigate()
   const orderId = useMemo(() => generateOrderId(), [])
 
-  const [name, setName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [fulfillment, setFulfillment] = useState<Fulfillment>('delivery')
@@ -46,7 +47,8 @@ export default function Checkout() {
 
   const canSubmit =
     items.length > 0 &&
-    name.trim() &&
+    firstName.trim() &&
+    lastName.trim() &&
     email.trim() &&
     phone.trim() &&
     (fulfillment === 'pickup' || address.trim()) &&
@@ -79,6 +81,7 @@ export default function Checkout() {
     setSubmitting(true)
     setSubmitError('')
 
+    const name = `${firstName.trim()} ${lastName.trim()}`.trim()
     const order: Order = {
       id: orderId,
       createdAt: new Date().toISOString(),
@@ -209,15 +212,26 @@ export default function Checkout() {
       {/* Personal details */}
       <section className="mt-6 grid gap-3">
         <h2 className="font-display text-lg font-bold text-bark">Your Details</h2>
-        <label className="text-sm text-bark/70">
-          Full name <span className="text-terracotta">*</span>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Full name"
-            className="mt-1 w-full rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
-          />
-        </label>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <label className="text-sm text-bark/70">
+            First name <span className="text-terracotta">*</span>
+            <input
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First name"
+              className="mt-1 w-full rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </label>
+          <label className="text-sm text-bark/70">
+            Last name <span className="text-terracotta">*</span>
+            <input
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last name"
+              className="mt-1 w-full rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </label>
+        </div>
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="text-sm text-bark/70">
             Email <span className="text-terracotta">*</span>
