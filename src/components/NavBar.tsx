@@ -1,9 +1,11 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Logo from './Logo'
 import { useCart } from '../context/CartContext'
 
 export default function NavBar() {
   const { count } = useCart()
+  const { pathname } = useLocation()
+  const onMenuPage = pathname === '/menu'
   return (
     <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur border-b border-bark/10">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-2">
@@ -11,13 +13,14 @@ export default function NavBar() {
           <Logo className="h-9" />
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm font-semibold text-clay-dark">
-          <Link to="/menu" className="whitespace-nowrap hover:text-terracotta transition-colors">
-            <span className="hidden sm:inline">Weekly Menu</span>
-            <span className="sm:hidden">Menu</span>
-          </Link>
-          <Link to="/special" className="whitespace-nowrap hover:text-terracotta transition-colors">
-            Specials
-          </Link>
+          {onMenuPage ? (
+            <span className="whitespace-nowrap text-terracotta">Customize Meal</span>
+          ) : (
+            <Link to="/menu" className="whitespace-nowrap hover:text-terracotta transition-colors">
+              <span className="hidden sm:inline">Weekly Menu</span>
+              <span className="sm:hidden">Menu</span>
+            </Link>
+          )}
           <Link
             to="/checkout"
             className="relative whitespace-nowrap bg-terracotta text-cream px-3 py-1.5 rounded-full hover:bg-alpona transition-colors"
