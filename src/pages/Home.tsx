@@ -15,7 +15,7 @@ export default function Home() {
         <h1 className="sr-only">Bangi — Flavors of Bengal, Savored with Love!</h1>
         <Logo className="h-44 sm:h-56" />
 
-        <div className="flex-1 flex items-center justify-center" style={{ transform: 'translateY(-5cm)' }}>
+        <div className="flex-1 flex items-center justify-center" style={{ transform: 'translateY(-6.5cm)' }}>
           <motion.button
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}

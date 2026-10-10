@@ -83,7 +83,6 @@ export default function WeeklyMenu() {
       >
         <h1 className="font-display text-4xl font-extrabold text-bark">This Week's Menu</h1>
         <p className="text-clay-dark font-semibold mt-1">{weeklyMenu.weekLabel}</p>
-        <p className="text-terracotta text-sm font-bold mt-1">{weeklyMenu.orderWindow}</p>
         <AlponaDivider />
       </motion.div>
 
