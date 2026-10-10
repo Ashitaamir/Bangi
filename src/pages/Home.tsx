@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="min-h-screen flex flex-col items-center px-4 pt-4 sm:pt-6 text-center relative overflow-hidden">
+      <section className="min-h-screen flex flex-col items-center px-4 pt-1 sm:pt-2 text-center relative overflow-hidden">
         <FloatingSpices />
 
         <h1 className="sr-only">Bangi — Flavors of Bengal, Savored with Love!</h1>
@@ -19,7 +19,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.6 }}
-          className="text-clay-dark font-medium mt-4 max-w-sm"
+          className="text-clay-dark font-medium mt-1 max-w-sm"
         >
           Home cooked meals with love.
         </motion.p>
@@ -31,7 +31,7 @@ export default function Home() {
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
           onClick={() => navigate('/menu')}
-          className="group relative mt-10 flex flex-col items-center"
+          className="group relative mt-5 flex flex-col items-center"
         >
           <SizzlingPan />
           <span className="mt-3 bg-terracotta group-hover:bg-alpona transition-colors text-cream font-bold px-6 py-2.5 rounded-full shadow-lg">
