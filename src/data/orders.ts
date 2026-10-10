@@ -8,6 +8,8 @@ export interface BusinessSettings {
   pickupAddress: string
   deliveryFeeDowntown: number
   deliveryFeeOutside: number
+  deliveryWindow: string
+  pickupWindow: string
 }
 
 // Used before the owner has ever saved Business Settings in /admin (or when
@@ -17,6 +19,8 @@ export const DEFAULT_BUSINESS_SETTINGS: BusinessSettings = {
   pickupAddress: '5000 Boulevard De Maisonneuve O, Montreal — 5:00pm to 7:00pm',
   deliveryFeeDowntown: 3,
   deliveryFeeOutside: 8,
+  deliveryWindow: '7–9pm',
+  pickupWindow: '6–10pm',
 }
 
 export type OrderStatus = 'awaiting_confirmation' | 'confirmed'
@@ -34,6 +38,7 @@ export interface Order {
   deliveryFee: number
   address?: string
   notes?: string
+  deliveryNotes?: string
   items: CartItem[]
   subtotal: number
   total: number

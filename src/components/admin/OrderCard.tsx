@@ -77,6 +77,9 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
         {order.fulfillment === 'delivery' ? '🛵' : '🚶'} {order.address}
       </p>
       {order.notes && <p className="text-xs text-clay-dark mt-1">Note: {order.notes}</p>}
+      {order.deliveryNotes && (
+        <p className="text-xs text-clay-dark mt-1">Delivery note: {order.deliveryNotes}</p>
+      )}
 
       <div className="mt-3 grid gap-1.5 text-sm border-t border-dashed border-bark/20 pt-3">
         {order.items.map((item) => (

@@ -137,6 +137,8 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
   const [pickupAddress, setPickupAddress] = useState('')
   const [deliveryFeeDowntown, setDeliveryFeeDowntown] = useState('')
   const [deliveryFeeOutside, setDeliveryFeeOutside] = useState('')
+  const [deliveryWindow, setDeliveryWindow] = useState('')
+  const [pickupWindow, setPickupWindow] = useState('')
   const [businessSaved, setBusinessSaved] = useState(false)
   const [savingBusiness, setSavingBusiness] = useState(false)
   const [businessError, setBusinessError] = useState('')
@@ -163,6 +165,8 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
       setPickupAddress(businessSettings.pickupAddress)
       setDeliveryFeeDowntown(String(businessSettings.deliveryFeeDowntown))
       setDeliveryFeeOutside(String(businessSettings.deliveryFeeOutside))
+      setDeliveryWindow(businessSettings.deliveryWindow)
+      setPickupWindow(businessSettings.pickupWindow)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessLoading])
@@ -198,6 +202,8 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
       pickupAddress: pickupAddress.trim(),
       deliveryFeeDowntown: Number(deliveryFeeDowntown) || 0,
       deliveryFeeOutside: Number(deliveryFeeOutside) || 0,
+      deliveryWindow: deliveryWindow.trim(),
+      pickupWindow: pickupWindow.trim(),
     }
     try {
       await saveBusinessSettings(settings)
@@ -350,6 +356,26 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
                 min="0"
                 value={deliveryFeeOutside}
                 onChange={(e) => setDeliveryFeeOutside(e.target.value)}
+                className="mt-1 w-full rounded border border-bark/20 px-3 py-2 bg-cream"
+              />
+            </label>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label className="text-sm text-bark/70">
+              Delivery time window
+              <input
+                value={deliveryWindow}
+                onChange={(e) => setDeliveryWindow(e.target.value)}
+                placeholder="e.g. 7–9pm"
+                className="mt-1 w-full rounded border border-bark/20 px-3 py-2 bg-cream"
+              />
+            </label>
+            <label className="text-sm text-bark/70">
+              Pickup time window
+              <input
+                value={pickupWindow}
+                onChange={(e) => setPickupWindow(e.target.value)}
+                placeholder="e.g. 6–10pm"
                 className="mt-1 w-full rounded border border-bark/20 px-3 py-2 bg-cream"
               />
             </label>

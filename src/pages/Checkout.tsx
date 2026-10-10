@@ -28,6 +28,7 @@ export default function Checkout() {
   const [deliveryZone, setDeliveryZone] = useState<DeliveryZone>('downtown')
   const [address, setAddress] = useState('')
   const [notes, setNotes] = useState('')
+  const [deliveryNotes, setDeliveryNotes] = useState('')
   const [screenshot, setScreenshot] = useState<string | undefined>()
   const [screenshotName, setScreenshotName] = useState<string>('')
   const [compressing, setCompressing] = useState(false)
@@ -87,6 +88,7 @@ export default function Checkout() {
       deliveryFee,
       address: fulfillment === 'delivery' ? address : settings.pickupAddress,
       notes,
+      deliveryNotes: deliveryNotes.trim() || undefined,
       items,
       subtotal,
       total,
@@ -207,27 +209,36 @@ export default function Checkout() {
       {/* Personal details */}
       <section className="mt-6 grid gap-3">
         <h2 className="font-display text-lg font-bold text-bark">Your Details</h2>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Full name"
-          className="rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
-        />
+        <label className="text-sm text-bark/70">
+          Full name <span className="text-terracotta">*</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Full name"
+            className="mt-1 w-full rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
+          />
+        </label>
         <div className="grid sm:grid-cols-2 gap-3">
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            type="email"
-            placeholder="Email"
-            className="rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
-          />
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            type="tel"
-            placeholder="Phone number"
-            className="rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
-          />
+          <label className="text-sm text-bark/70">
+            Email <span className="text-terracotta">*</span>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              placeholder="Email"
+              className="mt-1 w-full rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </label>
+          <label className="text-sm text-bark/70">
+            Phone number <span className="text-terracotta">*</span>
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              type="tel"
+              placeholder="Phone number"
+              className="mt-1 w-full rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </label>
         </div>
       </section>
 
@@ -270,18 +281,36 @@ export default function Checkout() {
                 </button>
               ))}
             </div>
+            <label className="block mt-3 text-sm text-bark/70">
+              Delivery address <span className="text-terracotta">*</span>
+              <textarea
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Delivery address"
+                rows={2}
+                className="mt-1 w-full rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
+              />
+            </label>
+            <p className="mt-3 text-sm text-clay-dark bg-cream rounded-lg px-4 py-2.5 border border-bark/10">
+              🕐 Delivery will be between <strong>{settings.deliveryWindow}</strong>
+            </p>
             <textarea
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Delivery address"
+              value={deliveryNotes}
+              onChange={(e) => setDeliveryNotes(e.target.value)}
+              placeholder="Notes for delivery (optional)"
               rows={2}
               className="mt-3 w-full rounded-lg border border-bark/20 px-4 py-2.5 bg-cream focus:outline-none focus:ring-2 focus:ring-gold"
             />
           </>
         ) : (
-          <p className="mt-3 text-sm text-clay-dark bg-cream rounded-lg px-4 py-2.5 border border-bark/10">
-            📍 Pickup at: <strong>{settings.pickupAddress}</strong>
-          </p>
+          <>
+            <p className="mt-3 text-sm text-clay-dark bg-cream rounded-lg px-4 py-2.5 border border-bark/10">
+              📍 Pickup at: <strong>{settings.pickupAddress}</strong>
+            </p>
+            <p className="mt-3 text-sm text-clay-dark bg-cream rounded-lg px-4 py-2.5 border border-bark/10">
+              🕐 Please pick up your order between <strong>{settings.pickupWindow}</strong>
+            </p>
+          </>
         )}
 
         <textarea
