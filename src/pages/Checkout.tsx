@@ -245,6 +245,10 @@ export default function Checkout() {
       {/* Fulfillment */}
       <section className="mt-6">
         <h2 className="font-display text-lg font-bold text-bark mb-2">Delivery or Pickup?</h2>
+        <p className="mb-3 text-sm font-bold text-terracotta bg-gold/15 rounded-lg px-3 py-2 border border-gold/40">
+          You will get a confirmation message before midnight once we verify the Interac, thank
+          you for your patience.
+        </p>
         <div className="flex gap-3">
           {(['delivery', 'pickup'] as Fulfillment[]).map((option) => (
             <button
@@ -344,16 +348,12 @@ export default function Checkout() {
             <strong className="text-gold text-base">${total.toFixed(2)}</strong>
           </div>
         </div>
-        <p className="text-xs text-cream/70 mt-3">
-          Please include the memo above so we can match your payment. Autodeposit is enabled — no
-          security question needed.
-        </p>
       </section>
 
       {/* Screenshot upload */}
       <section className="mt-6">
         <h2 className="font-display text-lg font-bold text-bark mb-2">
-          Upload Payment Screenshot
+          Upload Payment Screenshot <span className="text-terracotta">*</span>
         </h2>
         <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-clay-dark/40 rounded-2xl py-8 cursor-pointer hover:border-terracotta transition-colors bg-parchment/50">
           {compressing ? (
@@ -383,11 +383,6 @@ export default function Checkout() {
       </motion.button>
       {submitError && (
         <p className="text-xs text-center text-terracotta font-semibold mt-2">{submitError}</p>
-      )}
-      {!canSubmit && !submitError && (
-        <p className="text-xs text-center text-clay-dark mt-2">
-          Fill in your details and upload a payment screenshot to confirm.
-        </p>
       )}
     </div>
   )
