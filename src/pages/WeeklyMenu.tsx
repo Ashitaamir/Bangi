@@ -120,10 +120,11 @@ export default function WeeklyMenu() {
         </p>
       ) : (
       <motion.div
+        id="weekly-plan"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mt-6 rounded-2xl bg-parchment/80 p-5 rustic-border"
+        className="mt-6 rounded-2xl bg-parchment/80 p-5 rustic-border scroll-mt-20"
       >
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-bold text-bark">The Weekly Plan</h2>

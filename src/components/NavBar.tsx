@@ -14,7 +14,15 @@ export default function NavBar() {
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm font-semibold text-clay-dark">
           {onMenuPage ? (
-            <span className="whitespace-nowrap text-terracotta">Customize Meal</span>
+            <button
+              type="button"
+              onClick={() =>
+                document.getElementById('weekly-plan')?.scrollIntoView({ behavior: 'smooth' })
+              }
+              className="whitespace-nowrap text-terracotta hover:text-alpona transition-colors"
+            >
+              Customize Meal
+            </button>
           ) : (
             <Link to="/menu" className="whitespace-nowrap hover:text-terracotta transition-colors">
               <span className="hidden sm:inline">Weekly Menu</span>
