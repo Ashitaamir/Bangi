@@ -1,6 +1,7 @@
 import PinboardSelect from './PinboardSelect'
 import SpiceLevel from './SpiceLevel'
 import type { PlanItem } from '../data/types'
+import { getSwapChoices } from '../lib/swapOptions'
 
 interface Props {
   item: PlanItem
@@ -23,17 +24,7 @@ export default function PlanItemRow({
   swapItemId,
   onSwapChange,
 }: Props) {
-  const swapOptions =
-    item.swapOptions && item.swapOptions.length > 0
-      ? item.swapOptions
-          .map((s) => {
-            const other = weeklyItems.find((i) => i.id === s.itemId)
-            return other ? { ...other, delta: s.priceDelta } : null
-          })
-          .filter((o): o is PlanItem & { delta: number } => o !== null)
-      : weeklyItems
-          .filter((i) => i.id !== item.id)
-          .map((other) => ({ ...other, delta: (other.extraPrice ?? 0) - (item.extraPrice ?? 0) }))
+  const swapOptions = getSwapChoices(item, weeklyItems)
   return (
     <div className="py-4 border-b border-dashed border-bark/15 last:border-b-0">
       <div className="flex items-start gap-3">

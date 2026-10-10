@@ -6,6 +6,7 @@ import CartBar from '../components/CartBar'
 import AlponaDivider from '../components/AlponaDivider'
 import { useWeeklyMenu } from '../hooks/useWeeklyMenu'
 import { useCart, type ChosenSub, type ExtraLine } from '../context/CartContext'
+import { getSwapChoices } from '../lib/swapOptions'
 
 export default function WeeklyMenu() {
   const { addItem } = useCart()
@@ -48,21 +49,19 @@ export default function WeeklyMenu() {
   )
 
   const swapSubs: ChosenSub[] = weeklyMenu.items.flatMap((item) => {
-    const otherId = swaps[item.id]
-    if (!otherId) return []
-    const other = weeklyMenu.items.find((i) => i.id === otherId)
-    if (!other) return []
-    const curated = item.swapOptions?.find((s) => s.itemId === otherId)
-    const priceDelta = curated ? curated.priceDelta : (other.extraPrice ?? 0) - (item.extraPrice ?? 0)
+    const choiceId = swaps[item.id]
+    if (!choiceId) return []
+    const choice = getSwapChoices(item, weeklyMenu.items).find((c) => c.id === choiceId)
+    if (!choice) return []
     return [
       {
         itemId: item.id,
         itemName: item.name,
         groupId: 'swap',
         groupLabel: 'Substitute',
-        optionId: other.id,
-        optionLabel: other.name,
-        priceDelta,
+        optionId: choice.id,
+        optionLabel: choice.name,
+        priceDelta: choice.delta,
       },
     ]
   })

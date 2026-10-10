@@ -15,7 +15,11 @@ export interface SubstitutionGroup {
 // the plan is priced as a whole — but can optionally offer substitutions
 // (free or priced) and/or an extra portion at its own add-on price.
 export interface SwapOption {
-  itemId: string
+  // Exactly one of these is set: itemId for a swap tied to another dish on
+  // this week's menu, customLabel for a one-off substitute that isn't on
+  // the menu at all.
+  itemId?: string
+  customLabel?: string
   priceDelta: number
 }
 

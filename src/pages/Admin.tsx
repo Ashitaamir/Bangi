@@ -2,26 +2,21 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useWeeklyMenu } from '../hooks/useWeeklyMenu'
-import { useSpecialMeals } from '../hooks/useSpecialMeals'
 import { useOrders } from '../hooks/useOrders'
 import { useBusinessSettings } from '../hooks/useBusinessSettings'
 import { isFirebaseConfigured } from '../lib/firebase'
 import OrdersPanel from '../components/admin/OrdersPanel'
 import {
   addPlanItem,
-  addSpecialMeal,
   collectionIsEmpty,
   deletePlanItem,
-  deleteSpecialMeal,
   saveBusinessSettings,
   savePlanSettings,
   seedDefaultMenu,
   updatePlanItem,
-  updateSpecialMeal,
 } from '../lib/menuAdmin'
 import PlanItemForm from '../components/admin/PlanItemForm'
-import SpecialMealForm from '../components/admin/SpecialMealForm'
-import type { PlanItem, SpecialMeal } from '../data/types'
+import type { PlanItem } from '../data/types'
 import type { BusinessSettings } from '../data/orders'
 import Logo from '../components/Logo'
 
@@ -128,7 +123,6 @@ function AdminLogin({ onSignIn }: { onSignIn: (email: string, password: string) 
 
 function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
   const { weeklyMenu, loading: menuLoading } = useWeeklyMenu()
-  const { specialMeals, loading: specialsLoading } = useSpecialMeals()
   const { orders, loading: ordersLoading, error: ordersError } = useOrders()
   const { settings: businessSettings, loading: businessLoading } = useBusinessSettings()
 
@@ -149,8 +143,6 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
 
   const [addingPlanItem, setAddingPlanItem] = useState(false)
   const [editingPlanItemId, setEditingPlanItemId] = useState<string | null>(null)
-  const [addingSpecial, setAddingSpecial] = useState(false)
-  const [editingSpecialId, setEditingSpecialId] = useState<string | null>(null)
 
   const [showSeed, setShowSeed] = useState(false)
   const [seeding, setSeeding] = useState(false)
@@ -429,60 +421,6 @@ function AdminDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
         </div>
       </section>
 
-      {/* Specials */}
-      <section className="mt-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-xl font-bold text-bark">
-            Specials {!specialsLoading && `(${specialMeals.length})`}
-          </h2>
-          {!addingSpecial && (
-            <button
-              onClick={() => setAddingSpecial(true)}
-              className="text-sm font-bold text-terracotta hover:underline"
-            >
-              + Add special
-            </button>
-          )}
-        </div>
-
-        {addingSpecial && (
-          <div className="mb-3">
-            <SpecialMealForm
-              onSave={async (item) => {
-                await addSpecialMeal(item)
-                setAddingSpecial(false)
-              }}
-              onCancel={() => setAddingSpecial(false)}
-            />
-          </div>
-        )}
-
-        <div className="grid gap-3">
-          {specialMeals.map((item) =>
-            editingSpecialId === item.id ? (
-              <SpecialMealForm
-                key={item.id}
-                initial={item}
-                onSave={async (updated) => {
-                  await updateSpecialMeal(item.id, updated)
-                  setEditingSpecialId(null)
-                }}
-                onCancel={() => setEditingSpecialId(null)}
-              />
-            ) : (
-              <SpecialMealSummaryCard
-                key={item.id}
-                item={item}
-                onEdit={() => setEditingSpecialId(item.id)}
-                onDelete={() => deleteSpecialMeal(item.id)}
-              />
-            ),
-          )}
-          {!specialsLoading && specialMeals.length === 0 && !addingSpecial && (
-            <p className="text-sm text-bark/50">No specials posted. That's fine — they're optional.</p>
-          )}
-        </div>
-      </section>
     </div>
   )
 }
@@ -521,35 +459,3 @@ function PlanItemSummaryCard({
   )
 }
 
-function SpecialMealSummaryCard({
-  item,
-  onEdit,
-  onDelete,
-}: {
-  item: SpecialMeal
-  onEdit: () => void
-  onDelete: () => void
-}) {
-  return (
-    <div className="flex items-start justify-between gap-3 bg-parchment/70 rounded-xl p-4 rustic-border">
-      <div className="flex gap-3">
-        <span className="text-2xl">{item.emoji}</span>
-        <div>
-          <p className="font-bold text-bark">
-            {item.name} <span className="text-terracotta">${item.price.toFixed(2)}</span>
-          </p>
-          <p className="text-sm text-bark/70">{item.description}</p>
-          <span className="text-xs text-clay-dark">{item.availability}</span>
-        </div>
-      </div>
-      <div className="flex gap-2 shrink-0 text-sm">
-        <button onClick={onEdit} className="font-semibold text-clay-dark hover:text-terracotta">
-          Edit
-        </button>
-        <button onClick={onDelete} className="font-semibold text-bark/40 hover:text-terracotta">
-          Delete
-        </button>
-      </div>
-    </div>
-  )
-}

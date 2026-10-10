@@ -24,9 +24,15 @@ export default function PlanItemForm({ initial, allItems, onSave, onCancel }: Pr
   // swapPrices[otherItemId] = price delta as a string, or '' if not offered as a substitute
   const [swapPrices, setSwapPrices] = useState<Record<string, string>>(() => {
     const map: Record<string, string> = {}
-    for (const s of initial?.swapOptions ?? []) map[s.itemId] = String(s.priceDelta)
+    for (const s of initial?.swapOptions ?? []) if (s.itemId) map[s.itemId] = String(s.priceDelta)
     return map
   })
+  // Substitutes that aren't on this week's menu at all
+  const [customSwaps, setCustomSwaps] = useState<{ label: string; price: string }[]>(() =>
+    (initial?.swapOptions ?? [])
+      .filter((s) => s.customLabel)
+      .map((s) => ({ label: s.customLabel!, price: String(s.priceDelta) })),
+  )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -41,6 +47,18 @@ export default function PlanItemForm({ initial, allItems, onSave, onCancel }: Pr
     })
   }
 
+  function addCustomSwap() {
+    setCustomSwaps((prev) => [...prev, { label: '', price: '0' }])
+  }
+
+  function updateCustomSwap(index: number, field: 'label' | 'price', value: string) {
+    setCustomSwaps((prev) => prev.map((c, i) => (i === index ? { ...c, [field]: value } : c)))
+  }
+
+  function removeCustomSwap(index: number) {
+    setCustomSwaps((prev) => prev.filter((_, i) => i !== index))
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim() || !description.trim()) return
@@ -49,10 +67,15 @@ export default function PlanItemForm({ initial, allItems, onSave, onCancel }: Pr
     const cleanedSubs = substitutions
       .filter((g) => g.label.trim() && g.options.some((o) => o.label.trim()))
       .map((g) => ({ ...g, options: g.options.filter((o) => o.label.trim()) }))
-    const swapOptions = Object.entries(swapPrices).map(([itemId, price]) => ({
-      itemId,
-      priceDelta: price === '' ? 0 : Number(price),
-    }))
+    const swapOptions = [
+      ...Object.entries(swapPrices).map(([itemId, price]) => ({
+        itemId,
+        priceDelta: price === '' ? 0 : Number(price),
+      })),
+      ...customSwaps
+        .filter((c) => c.label.trim())
+        .map((c) => ({ customLabel: c.label.trim(), priceDelta: c.price === '' ? 0 : Number(c.price) })),
+    ]
     try {
       await onSave({
         name: name.trim(),
@@ -172,6 +195,45 @@ export default function PlanItemForm({ initial, allItems, onSave, onCancel }: Pr
             })}
           </div>
         )}
+
+        <p className="text-sm font-semibold text-bark mt-4">
+          Custom substitutes <span className="font-normal text-bark/50">(not on this week's menu)</span>
+        </p>
+        <div className="mt-2 grid gap-1.5">
+          {customSwaps.map((c, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                value={c.label}
+                onChange={(e) => updateCustomSwap(i, 'label', e.target.value)}
+                placeholder="e.g. Plain Rice"
+                className="flex-1 rounded border border-bark/20 px-2 py-1.5 text-sm bg-cream"
+              />
+              <input
+                type="number"
+                step="0.5"
+                value={c.price}
+                onChange={(e) => updateCustomSwap(i, 'price', e.target.value)}
+                placeholder="0"
+                className="w-20 rounded border border-bark/20 px-2 py-1.5 text-sm bg-cream"
+              />
+              <button
+                type="button"
+                onClick={() => removeCustomSwap(i)}
+                className="text-terracotta text-sm font-bold px-1"
+                aria-label="Remove custom substitute"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={addCustomSwap}
+          className="mt-2 text-xs font-bold text-terracotta hover:underline"
+        >
+          + Add custom substitute
+        </button>
       </div>
 
       {error && <p className="text-terracotta text-sm font-semibold">{error}</p>}
