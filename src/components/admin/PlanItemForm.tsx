@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import SubstitutionGroupsEditor from './SubstitutionGroupsEditor'
 import type { PlanItem, SubstitutionGroup } from '../../data/types'
 
 interface Props {
@@ -18,9 +17,8 @@ export default function PlanItemForm({ initial, allItems, onSave, onCancel }: Pr
   const [extraPrice, setExtraPrice] = useState<string>(
     initial?.extraPrice != null ? String(initial.extraPrice) : '',
   )
-  const [substitutions, setSubstitutions] = useState<SubstitutionGroup[]>(
-    initial?.substitutions ?? [],
-  )
+  // Not directly editable anymore -- preserved as-is from existing data on save.
+  const substitutions: SubstitutionGroup[] = initial?.substitutions ?? []
   // swapPrices[otherItemId] = price delta as a string, or '' if not offered as a substitute
   const [swapPrices, setSwapPrices] = useState<Record<string, string>>(() => {
     const map: Record<string, string> = {}
@@ -152,10 +150,8 @@ export default function PlanItemForm({ initial, allItems, onSave, onCancel }: Pr
         </label>
       </div>
 
-      <SubstitutionGroupsEditor groups={substitutions} onChange={setSubstitutions} />
-
       <div className="rounded border border-bark/15 bg-parchment/60 p-3">
-        <p className="text-sm font-semibold text-bark">Substitute with another dish</p>
+        <p className="text-sm font-semibold text-bark">Substitutes</p>
         <p className="text-xs text-bark/60 mt-0.5">
           Pick which dishes customers can swap this one for, and the price difference. Leave
           every box unchecked to offer every other dish as a swap automatically, priced off each
