@@ -3,9 +3,11 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import AlponaBloom from '../components/AlponaBloom'
 import { getLastOrder, type Order } from '../data/orders'
+import { useBusinessSettings } from '../hooks/useBusinessSettings'
 
 export default function Confirmation() {
   const [order, setOrder] = useState<Order | null>(null)
+  const { settings } = useBusinessSettings()
 
   useEffect(() => {
     setOrder(getLastOrder())
@@ -44,8 +46,8 @@ export default function Confirmation() {
         transition={{ delay: 1.9 }}
         className="text-clay-dark mt-2"
       >
-        Dhonnobad, {order.customer.name.split(' ')[0] || 'friend'}! The Bangi kitchen will confirm
-        your payment shortly.
+        Dhonnobad, {order.customer.name.split(' ')[0] || 'friend'}! Bangi will confirm your order
+        shortly.
       </motion.p>
 
       <motion.div
@@ -81,6 +83,11 @@ export default function Confirmation() {
         </div>
         <p className="text-xs text-clay-dark mt-3">
           {order.fulfillment === 'delivery' ? `🛵 Delivery to: ${order.address}` : `🚶 ${order.address}`}
+        </p>
+        <p className="text-xs font-bold text-terracotta mt-1">
+          {order.fulfillment === 'delivery'
+            ? `🕐 Your order will be delivered between ${settings.deliveryWindow}`
+            : `🕐 Please pick up your order between ${settings.pickupWindow}`}
         </p>
       </motion.div>
 
