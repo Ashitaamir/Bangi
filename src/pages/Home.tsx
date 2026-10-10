@@ -15,7 +15,7 @@ export default function Home() {
         <h1 className="sr-only">Bangi — Flavors of Bengal, Savored with Love!</h1>
         <Logo className="h-44 sm:h-56" />
 
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center" style={{ transform: 'translateY(-5cm)' }}>
           <motion.button
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -28,7 +28,6 @@ export default function Home() {
             <span className="bg-terracotta group-hover:bg-alpona transition-colors text-cream font-bold text-lg px-8 py-3.5 rounded-full shadow-lg">
               This Week's Menu
             </span>
-            <span className="text-xs text-clay-dark mt-2">Ordering open Fri–Sun midnight</span>
           </motion.button>
         </div>
       </section>
