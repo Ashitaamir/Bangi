@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { AdminOrder } from '../../hooks/useOrders'
 import { deleteOrder, setOrderStatus } from '../../lib/orders'
+import { sendOrderConfirmationEmail } from '../../lib/email'
 
 function timeAgo(iso: string) {
   if (!iso) return ''
@@ -24,7 +25,19 @@ export default function OrderCard({ order }: { order: AdminOrder }) {
   async function toggleConfirmed() {
     setUpdating(true)
     try {
-      await setOrderStatus(order.firestoreId, confirmed ? 'awaiting_confirmation' : 'confirmed')
+      const nextStatus = confirmed ? 'awaiting_confirmation' : 'confirmed'
+      await setOrderStatus(order.firestoreId, nextStatus)
+      if (nextStatus === 'confirmed') {
+        sendOrderConfirmationEmail({
+          to_email: order.customer.email,
+          to_name: order.customer.name,
+          order_id: order.id,
+          order_summary: order.items.map((i) => `${i.qty}x ${i.name}`).join(', '),
+          total: `$${order.total.toFixed(2)}`,
+          fulfillment_summary:
+            order.fulfillment === 'delivery' ? `Delivery to: ${order.address}` : `Pickup at: ${order.address}`,
+        })
+      }
     } finally {
       setUpdating(false)
     }

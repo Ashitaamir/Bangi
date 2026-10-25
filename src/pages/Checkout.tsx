@@ -10,7 +10,6 @@ import {
   type Order,
 } from '../data/orders'
 import { submitOrderToFirestore } from '../lib/orders'
-import { sendOrderConfirmationEmail } from '../lib/email'
 import { compressImage } from '../lib/image'
 import { useBusinessSettings } from '../hooks/useBusinessSettings'
 import AlponaDivider from '../components/AlponaDivider'
@@ -109,16 +108,6 @@ export default function Checkout() {
 
     saveLastOrder(order)
     clearCart()
-
-    sendOrderConfirmationEmail({
-      to_email: email,
-      to_name: name,
-      order_id: orderId,
-      order_summary: items.map((i) => `${i.qty}x ${i.name}`).join(', '),
-      total: `$${total.toFixed(2)}`,
-      fulfillment_summary:
-        fulfillment === 'delivery' ? `Delivery to: ${address}` : `Pickup at: ${settings.pickupAddress}`,
-    })
 
     setTimeout(() => navigate('/confirmation'), 400)
   }
